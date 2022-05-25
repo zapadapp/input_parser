@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>ZapadApp</h1>
+
+<img src='./resources/file.png' width='1000' height='500' id="image"></img>
+
+<script>
+setInterval(refresher, 100);
+window.onload = refresher;
+
+function refreser() {
+    document.getElementById("image").src="./resources/file.png?random="+new Date().getTime();
+}
+</script>
+
+</body>
+</html>
