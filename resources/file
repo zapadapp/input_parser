@@ -10,8 +10,12 @@ color = #(define-music-function (parser location color) (string?) #{
     
 \header { } 
 \score  { 
- \new Voice { \new Voice { cis'' 4  
-                ais 4  
+ \new Voice { \new Voice { g' 4  
+                a' 4  
+                e' 4  
+                f'' 4  
+                d'' 4  
+                cis''' 4  
                  } 
                
  

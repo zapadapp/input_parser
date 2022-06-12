@@ -65,7 +65,7 @@ t2 = Thread(target = consumer, args =(q, ))
 t2.start()
 
 def convertToNote(val) :
-    nota = str.replace(str.replace(nota, "['", ""), "']", "")
+    nota = str.replace(str.replace(val, "['", ""), "']", "")
     if len(nota) == 3 :
         nota = nota[0] + "#" + nota[2]
 
@@ -102,8 +102,6 @@ while True:
             q.put(s)
             tInit = time.time()
             tEnd = time.time()
-
-         
     fig.canvas.draw()
     fig.canvas.flush_events()
     
