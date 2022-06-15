@@ -26,7 +26,8 @@ data_stream = p.open(                                  # Abrimos el canal de aud
     rate = Fs,
     input=True,
     output=True,
-    frames_per_buffer=FRAMES
+    frames_per_buffer=FRAMES,
+    input_device_index=11
 )
 
 ## Creamos una gráfica con 2 subplots y configuramos los ejes
