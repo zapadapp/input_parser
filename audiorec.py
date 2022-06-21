@@ -61,8 +61,11 @@ def filterLowSamples(samples):
 ## Function that calculates the FFT of a part of an audio sample (part determined by indexes 'a' and 'b' of the parameterized samples) and finds 
 ## the fundamental frequency to get the corresponding note.
 def detectAndPrintNote(y, sr, samples, a, b):
-    # limit the audio input from sample in index a to sample in index b
-    data = y[samples[a]:samples[b]]
+    # limit the audio input from sample in index a to sample in index b, unless b is 999 which means that it is the end of the audio data
+    if b == 999:
+        data = y[samples[a]:]
+    else:    
+        data = y[samples[a]:samples[b]]
     
     # calculate FFT and absolute values
     X = fft(data)
@@ -155,6 +158,9 @@ while True:
         
         if j < length-1:
             detectAndPrintNote(y, sr, filteredSamples, j, j+1)
+        elif j == length-1:
+            detectAndPrintNote(y, sr, filteredSamples, j, 999)
+
 
     # comment or uncomment break for testing single audio recordings
     # break
