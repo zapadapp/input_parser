@@ -4,14 +4,14 @@
 
 <h1>ZapadApp</h1>
 
-<img src='tmp/score.png' width='1000' height='500' id="image"></img>
+<img src='tmp/score1.png' width='1000' height='500' id="image"></img>
 
 <script>
 setInterval(refresher, 10);
 window.onload = refresher;
 
 function refresher() {
-    document.getElementById("image").src="tmp/score.png?random="+new Date().getTime();
+    document.getElementById("image").src="tmp/score1.png?random="+new Date().getTime();
 }
 </script>
 
