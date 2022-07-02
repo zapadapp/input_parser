@@ -20,6 +20,28 @@ Fs = 44100                                        # Frecuencia de muestreo típi
 
 p = pa.PyAudio()
 
+
+info = p.get_host_api_info_by_index(0)
+numdevices = info.get('deviceCount')
+defaultIndex = 0
+
+# show all input devices found.
+for i in range(0, numdevices):
+    if (p.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0:
+        print("Input Device id ", i, " - ", p.get_device_info_by_host_api_device_index(0, i).get('name'))
+        if p.get_device_info_by_host_api_device_index(0, i).get('name') == "default":
+            defaultIndex = i
+
+# request the desired device to use as input. If none is selected we use the default.
+userInput = input("Select an input device (or hit enter to use default): ")
+
+chosenDevice = defaultIndex
+if userInput != '':
+    chosenDevice = int(userInput)
+
+print("chosen device: {} - {}".format(chosenDevice, p.get_device_info_by_host_api_device_index(0, chosenDevice).get('name')))
+
+
 data_stream = p.open(                                  # Abrimos el canal de audio con los parámeteros de configuración
     format = FORMAT,
     channels = CHANNELS,
@@ -27,7 +49,7 @@ data_stream = p.open(                                  # Abrimos el canal de aud
     input=True,
     output=True,
     frames_per_buffer=FRAMES,
-    input_device_index=11
+    input_device_index=chosenDevice
 )
 
 ## Creamos una gráfica con 2 subplots y configuramos los ejes
@@ -89,20 +111,13 @@ while True:
     F_fund = F[Posm]                                   # Encontramos la frecuencia que corresponde con el máximo de M_gk
     
     if np.max(M_gk) > 100 :
-        
-
-        if ant != F_fund : 
-            ant = F_fund
-        else:
-            tEnd =time.time()
-
-        if tEnd - tInit >= 0.8 :
-            nota = convertToNote(str(librosa.hz_to_note(F_fund)))
-            print(nota)
-            s.append(note.Note(nota))
-            q.put(s)
-            tInit = time.time()
-            tEnd = time.time()
+    
+        nota = convertToNote(str(librosa.hz_to_note(F_fund)))
+        print(nota)
+        s.append(note.Note(nota))
+        q.put(s)
+        tInit = time.time()
+        tEnd = time.time()
     fig.canvas.draw()
     fig.canvas.flush_events()
     

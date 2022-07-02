@@ -4,6 +4,10 @@ from unicodedata import name
 import customtkinter
 from PIL import Image, ImageTk
 import os
+import recorder
+from threading import Thread
+import time
+import pyaudio
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -18,6 +22,7 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
 
+        self.audio = pyaudio.PyAudio()
         self.title("zapadapp")
         self.geometry(f"{App.WIDTH}x{App.HEIGHT}")
         self.protocol("WM_DELETE_WINDOW", self.on_closing)  # call .on_closing() when app gets closed
@@ -94,7 +99,7 @@ class App(customtkinter.CTk):
         # self.label_info_1.grid(column=1, row=2, sticky="nwe", padx=15, pady=15)
 
 
-        image = Image.open(PATH + "/tmp/file1.png").resize((500, 200))
+        image = Image.open(PATH + "/tmp/score.png").resize((500, 200))
         self.bg_image = ImageTk.PhotoImage(image)
 
         self.image_label = tkinter.Label(master=self.frame_info, image=self.bg_image)
@@ -102,20 +107,20 @@ class App(customtkinter.CTk):
         # ============ frame_right ============
        
         self.combobox_1 = customtkinter.CTkComboBox(master=self.frame_right,
-                                                    values=[ "Device 1", "Device 2"])
+                                                    values=[ "Device 1", "Device 2"], command=self.combobox_func)
         self.combobox_1.grid(row=0, column=0, columnspan=1, pady=10, padx=20, sticky="we")
 
-        recordImg = ImageTk.PhotoImage(Image.open("tmp/record.png"))
-        stopImg = ImageTk.PhotoImage(Image.open("tmp/stop.png"))
-        saveImg = ImageTk.PhotoImage(Image.open("tmp/save.png"))
+        recordImg = ImageTk.PhotoImage(Image.open("img/record.png"))
+        stopImg = ImageTk.PhotoImage(Image.open("img/stop.png"))
+        saveImg = ImageTk.PhotoImage(Image.open("img/save.png"))
 
-        self.recButton = customtkinter.CTkButton(master=self.frame_right, image=recordImg, text="", bg_color="#FFF")
+        self.recButton = customtkinter.CTkButton(master=self.frame_right, image=recordImg, text="", bg_color="#FFF", command=self.record_action)
         self.recButton.grid(row=6, column=0, columnspan=1, pady=20, padx=20, sticky="we")
 
-        self.stopButton = customtkinter.CTkButton(master=self.frame_right, image=stopImg, text="")
+        self.stopButton = customtkinter.CTkButton(master=self.frame_right, image=stopImg, text="", command=self.stop_action)
         self.stopButton.grid(row=6, column=1, columnspan=1, pady=20, padx=20, sticky="we")
  
-        self.saveButton = customtkinter.CTkButton(master=self.frame_right, image=saveImg, text="")
+        self.saveButton = customtkinter.CTkButton(master=self.frame_right, image=saveImg, text="",command=self.refresh_score)
         self.saveButton.grid(row=6, column=2, columnspan=1, pady=20, padx=20, sticky="we")
 
         # set default values
@@ -134,13 +139,62 @@ class App(customtkinter.CTk):
     def button_event(self):
         print("Button pressed")
 
+    def record_action(self):
+        self.rec = recorder.Recorder("file.wav", "score")
+        self.rec.setup(self.deviceChoice)
+        recorderThread = Thread(target = self.rec.record, args =())
+        
+        recorderThread.start()
+
+        imgUpdater = Thread(target = self.refresh_score, args = ())
+        imgUpdater.start()
+
+    def stop_action(self):    
+        print("stop button")
+        self.rec.stop()
+        self.rec.close()
+
+    def refresh_score(self):
+        while True:
+            image = Image.open(PATH + "/tmp/score.png").resize((500, 200))
+            self.bg_image = ImageTk.PhotoImage(image)
+
+            self.image_label.configure(image=self.bg_image)
+            self.image_label.image = image
+            time.sleep(0.5)
+
+    def update_devices(self):
+        print("update devices")    
+
     def change_appearance_mode(self, new_appearance_mode):
         customtkinter.set_appearance_mode(new_appearance_mode)
+    
+    def get_devices(self):
+        info = self.audio.get_host_api_info_by_index(0)
+        numdevices = info.get('deviceCount')
+        newValues = []
+        # show all input devices found.
+        # print("Input Device id ", i, " - ", self.audio.get_device_info_by_host_api_device_index(0, i).get('name'))
+
+        for i in range(0, numdevices):
+            if (self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0:
+                newValues.append("{} #{}".format(self.audio.get_device_info_by_host_api_device_index(0, i).get('name'),i))
+
+        self.combobox_1.configure(values= newValues)        
+    
+    def combobox_func(self, choice):
+        if choice == "Select device":
+            return
+
+        s = choice.split("#")
+        self.deviceChoice = int(s[1])
 
     def on_closing(self, event=0):
         self.destroy()
+    
 
 
 if __name__ == "__main__":
     app = App()
+    app.get_devices()
     app.mainloop()

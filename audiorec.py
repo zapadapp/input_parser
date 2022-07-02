@@ -1,12 +1,8 @@
 import webrtcvad
 import pyaudio
 import wave
-import os, sys
 import librosa
 import numpy as np
-import matplotlib.pyplot as plt
-import librosa.display
-import tensorflow as tf
 from scipy.signal import find_peaks
 from scipy.fft import fft
 from warnings import simplefilter
@@ -100,11 +96,12 @@ def detectAndPrintNote(q, y, sr, samples, a, b):
             nota = convertToNote(str(librosa.hz_to_note(f[peak_i[0]])))
             print("Detected note: {}".format(nota))
             s.append(note.Note(nota))
+            #print(s)
             q.put(s)
             #print("Detected note: {}".format(str(librosa.hz_to_note(f[peak_i[0]]))))
             return 
 
-    print("No detected note")            
+    #print("No detected note")            
 
 def convertToNote(val) :
     nota = str.replace(str.replace(val, "['", ""), "']", "")

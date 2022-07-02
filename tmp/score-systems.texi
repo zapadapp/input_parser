@@ -1,0 +1,2 @@
+@image{score-1}
+@c eof
