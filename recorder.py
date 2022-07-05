@@ -1,18 +1,8 @@
 import webrtcvad
 import pyaudio
 import wave
-import os, sys
-import librosa
-import numpy as np
-import matplotlib.pyplot as plt
-import librosa.display
-import tensorflow as tf
-from scipy.signal import find_peaks
-from scipy.fft import fft
 from warnings import simplefilter
-from queue import Queue
 from threading import Thread
-from music21 import note,environment
 from music21 import stream as m21stream
 import audio2note
     
@@ -24,8 +14,8 @@ class Recorder:
         self.vad.set_mode(2)
         self.FORMAT = pyaudio.paInt16
         self.CHANNELS = 1
-        self.RATE = 44100
-        self.CHUNK = 960
+        self.RATE = 22050
+        self.CHUNK = 1024
         self.RECORD_SECONDS = 3
         self.WAVE_OUTPUT_FILENAME = outputFile
         self.SCORE_PATH = scoreFile
@@ -58,10 +48,9 @@ class Recorder:
                 rate=self.RATE, input=True,
                 frames_per_buffer=self.CHUNK, input_device_index=deviceChoice)
 
-    def record(self):
+    def record(self, note_q):
         self.recording = True
         self.noteStream = m21stream.Stream()
-        self.noteQueue = Queue()
 
         while self.recording == True:
             frames = []
@@ -78,7 +67,7 @@ class Recorder:
             waveFile.writeframes(b''.join(frames))
             waveFile.close()
 
-            processThread = Thread(target = audio2note.processAudio, args =(self.noteStream,self.noteQueue,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
+            processThread = Thread(target = audio2note.processAudio, args =(self.noteStream,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
             processThread.start()
 
     def stop(self):

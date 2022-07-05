@@ -1,6 +1,5 @@
 import tkinter
 import tkinter.messagebox
-from unicodedata import name
 import customtkinter
 from PIL import Image, ImageTk
 import os
@@ -8,6 +7,8 @@ import recorder
 from threading import Thread
 import time
 import pyaudio
+from queue import Queue
+import shutil
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -49,10 +50,18 @@ class App(customtkinter.CTk):
         self.frame_left.grid_rowconfigure(8, minsize=20)    # empty row with minsize as spacing
         self.frame_left.grid_rowconfigure(11, minsize=10)  # empty row with minsize as spacing
 
-        self.label_1 = customtkinter.CTkLabel(master=self.frame_left,
-                                              text="ZAPADAPP",
-                                              text_font=("Roboto Medium", -16))  # font name and size in px
-        self.label_1.grid(row=1, column=0, pady=10, padx=10)
+        # self.label_1 = customtkinter.CTkLabel(master=self.frame_left,
+        #                                       text="ZAPADAPP",
+        #                                       text_font=("Roboto Medium", -16))  # font name and size in px
+        # self.label_1.grid(row=1, column=0, pady=10, padx=10)
+
+        logoImg = Image.open(PATH + "/img/zapadapp-logo.jpeg").resize((160, 90))
+        self.logo = ImageTk.PhotoImage(logoImg)
+
+        self.logo_label = tkinter.Label(master=self.frame_left, image=self.logo)
+        self.logo_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        self.logo_label.grid(row=1, column=0, pady=10, padx=10)
+
 
         self.button_1 = customtkinter.CTkButton(master=self.frame_left,
                                                 text="Play!",
@@ -99,7 +108,7 @@ class App(customtkinter.CTk):
         # self.label_info_1.grid(column=1, row=2, sticky="nwe", padx=15, pady=15)
 
 
-        image = Image.open(PATH + "/tmp/score.png").resize((500, 200))
+        image = Image.open(PATH + "/img/empty-score.png").resize((500, 200))
         self.bg_image = ImageTk.PhotoImage(image)
 
         self.image_label = tkinter.Label(master=self.frame_info, image=self.bg_image)
@@ -120,9 +129,13 @@ class App(customtkinter.CTk):
         self.stopButton = customtkinter.CTkButton(master=self.frame_right, image=stopImg, text="", command=self.stop_action)
         self.stopButton.grid(row=6, column=1, columnspan=1, pady=20, padx=20, sticky="we")
  
-        self.saveButton = customtkinter.CTkButton(master=self.frame_right, image=saveImg, text="",command=self.refresh_score)
+        self.saveButton = customtkinter.CTkButton(master=self.frame_right, image=saveImg, text="",command=self.save_score)
         self.saveButton.grid(row=6, column=2, columnspan=1, pady=20, padx=20, sticky="we")
 
+
+        self.note_label = customtkinter.CTkLabel(master=self.frame_right, text="Played note: -")
+        self.note_label.grid(row=7, column=0, pady=0, padx=20, sticky="w")
+        
         # set default values
         self.optionmenu_1.set("Dark")
         #self.button_3.configure(state="disabled", text="Disabled CTkButton")
@@ -140,10 +153,19 @@ class App(customtkinter.CTk):
         print("Button pressed")
 
     def record_action(self):
+        try:
+            os.remove("tmp/score.png")
+        except OSError as e:
+            print(e.errno)
+
+        self.note_q = Queue()
         self.rec = recorder.Recorder("file.wav", "score")
         self.rec.setup(self.deviceChoice)
-        recorderThread = Thread(target = self.rec.record, args =())
-        
+
+        noteThread = Thread(target = self.show_note)
+        noteThread.start()
+
+        recorderThread = Thread(target = self.rec.record, args =(self.note_q, ))
         recorderThread.start()
 
         imgUpdater = Thread(target = self.refresh_score, args = ())
@@ -156,12 +178,22 @@ class App(customtkinter.CTk):
 
     def refresh_score(self):
         while True:
-            image = Image.open(PATH + "/tmp/score.png").resize((500, 200))
-            self.bg_image = ImageTk.PhotoImage(image)
+            print("debug")
+            try:
+                image = Image.open(PATH + "/tmp/score.png").resize((500, 200))
+                self.bg_image = ImageTk.PhotoImage(image)
 
-            self.image_label.configure(image=self.bg_image)
-            self.image_label.image = image
+                self.image_label.configure(image=self.bg_image)
+                self.image_label.image = image
+            except OSError as e:
+                print(e.errno)
+
             time.sleep(0.5)
+
+    def show_note(self):
+        while True:
+            note = self.note_q.get()
+            self.note_label.configure(text="Played note: {}".format(note))
 
     def update_devices(self):
         print("update devices")    
@@ -191,6 +223,15 @@ class App(customtkinter.CTk):
 
     def on_closing(self, event=0):
         self.destroy()
+
+    def save_score(self):
+        print("saving file")
+        shutil.copy2("tmp/score.png", "files/score_{}.png".format(time.time()))
+        os.remove("tmp/score.png")
+        image = Image.open(PATH + "/img/empty-score.png").resize((500, 200))
+        self.bg_image = ImageTk.PhotoImage(image)
+
+        self.image_label.configure(image=self.bg_image)
     
 
 

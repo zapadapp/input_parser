@@ -1,18 +1,10 @@
-import webrtcvad
-import pyaudio
-import wave
-import os, sys
+import os
 import librosa
 import numpy as np
-import matplotlib.pyplot as plt
 import librosa.display
-import tensorflow as tf
 from scipy.signal import find_peaks
 from scipy.fft import fft
-from warnings import simplefilter
-from queue import Queue
-from threading import Thread
-from music21 import note,environment
+from music21 import note
 from music21 import stream as m21stream
 
 
@@ -53,6 +45,7 @@ def detectAndPrintNote(s,q, y, sr, samples, a, b, scorePath):
         if len(peak_i) > 0:
             nota = convertToNote(str(librosa.hz_to_note(f[peak_i[0]])))
             print("Detected note: {}".format(nota))
+            q.put(nota)
             s.append(note.Note(nota))
             print(s.write('lily.png', fp=os.path.join("tmp", scorePath)))
             #q.put(s)
