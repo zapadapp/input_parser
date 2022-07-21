@@ -5,6 +5,7 @@ from warnings import simplefilter
 from threading import Thread
 from music21 import stream as m21stream
 import audio2note
+import audio2chord
     
 simplefilter(action='ignore', category=FutureWarning)
 
@@ -48,7 +49,7 @@ class Recorder:
                 rate=self.RATE, input=True,
                 frames_per_buffer=self.CHUNK, input_device_index=deviceChoice)
 
-    def record(self, note_q):
+    def record(self, note_q, detect):
         self.recording = True
         self.noteStream = m21stream.Stream()
 
@@ -67,8 +68,12 @@ class Recorder:
             waveFile.writeframes(b''.join(frames))
             waveFile.close()
 
-            processThread = Thread(target = audio2note.processAudio, args =(self.noteStream,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
-            processThread.start()
+            if detect == 'note':
+                processThread = Thread(target = audio2note.processAudio, args =(self.noteStream,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
+                processThread.start()
+            else:
+                processThread = Thread(target = audio2chord.processAudio, args =(self.noteStream,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
+                processThread.start()
 
     def stop(self):
         self.recording = False
