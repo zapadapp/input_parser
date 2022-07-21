@@ -10,12 +10,15 @@ from music21 import stream as m21stream
 from array import ArrayType
 import keras
 import librosa
-import json
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
+# solve local imports
 import sys
-sys.path.insert(0, '/home/maxo/workspace/chord_cnn')
+FILE_PATH = os.path.dirname(os.path.realpath(__file__))
+WORKSPACE = os.path.dirname(FILE_PATH)
+
+sys.path.insert(0, os.path.join(WORKSPACE, "chord_cnn"))
 from parser_data import normalizeShape, correctShape
 
 

@@ -4,6 +4,11 @@ import wave
 from warnings import simplefilter
 from threading import Thread
 from music21 import stream as m21stream
+
+# solve local imports
+import os, sys
+FILE_PATH = os.path.dirname(os.path.realpath(__file__))
+sys.path.insert(0, FILE_PATH)
 import audio2note
 import audio2chord
     
