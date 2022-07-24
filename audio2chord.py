@@ -19,7 +19,7 @@ FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 WORKSPACE = os.path.dirname(FILE_PATH)
 
 sys.path.insert(0, os.path.join(WORKSPACE, "chord_cnn"))
-from parser_data import normalizeShape, correctShape
+#from parser_data import normalizeShape, correctShape
 
 CATEGORIES = ["A#3","A#4","A#5","A3","A4","A5",
               "B3", "B4","B5","C#3","C#4","C#5",
@@ -110,31 +110,18 @@ def detectAndPrintChord(s,q, y, sr, samples, a, b, scorePath):
         data = y[samples[a]:]
     else:    
         data = y[samples[a]:samples[b]]
-    
-    # extract Chroma
-    # extract Chroma
-    #chroma = librosa.feature.chroma_cens(y=data, sr=sr)
-    #if not correctShape(chroma.shape[1]) :
-    #    chroma = normalizeShape(chroma)
-    
-    #chroma_reshape = tf.reshape(chroma, [ 1,12,130])
-    #my_prediction = chord_model.predict(chroma_reshape)
-    #print(my_prediction)
-    #index = np.argmax(my_prediction)
+
     playedChord = getChordFromRNN(y=data,sr=sr)
     print("chord: " + playedChord)
     
     q.put(playedChord)
-  
-    s.append(chord.Chord(getNotesFromChords(playedChord)))
+    triada = getNotesFromChords(playedChord)
+    s.append(chord.Chord(triada))
     print(s.write('lily.png', fp=os.path.join("tmp", scorePath)))
     #q.put(s)
-    #print("Detected note: {}".format(str(librosa.hz_to_note(f[peak_i[0]]))))
-    return 
-
-    #print("No detected note")    
-
-
+    print("Detected chord: {}".format(playedChord))
+    print("Notes from chord: {}".format(triada))
+    return    
 
 def processAudio(s,q, audioPath, scorePath):
     ############################################################
