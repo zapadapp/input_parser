@@ -54,7 +54,7 @@ class Recorder:
                 rate=self.RATE, input=True,
                 frames_per_buffer=self.CHUNK, input_device_index=deviceChoice)
 
-    def record(self, note_q, detect):
+    def record(self, note_q, detect):    
         self.recording = True
         self.noteStream = m21stream.Stream()
 
@@ -62,7 +62,7 @@ class Recorder:
             frames = []
             print("recording...")
             for i in range(0, int(self.RATE / self.CHUNK * self.RECORD_SECONDS)):
-                data = self.stream.read(self.CHUNK)
+                data = self.stream.read(self.CHUNK,exception_on_overflow=False)
                 frames.append(data)
             print("finished recording")
 
@@ -81,10 +81,11 @@ class Recorder:
                 processThread.start()
 
     def stop(self):
-        self.recording = False
-
-    def close(self):
         self.stream.stop_stream()
+        self.recording = False
+       
+
+    def close(self):     
         self.stream.close()
         self.audio.terminate()
 
