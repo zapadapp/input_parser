@@ -50,7 +50,7 @@ def detectAndPrintNote(s,q, y, sr, samples, a, b, scorePath):
             print(s.write('lily.png', fp=os.path.join("../front/tmp", scorePath)))
             #q.put(s)
             #print("Detected note: {}".format(str(librosa.hz_to_note(f[peak_i[0]]))))
-            return 
+        return 
 
     #print("No detected note")    
 

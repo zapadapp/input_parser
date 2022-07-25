@@ -57,22 +57,42 @@ def normalizeShape(chroma_mat):
     return chroma_mat
 
 
-def getChordFromRNN(file_path, sample_rate):
+def getChordFromRNN(signal, sample_rate):
     my_model = keras.models.load_model(chord_model)
 
-    signal, sr = librosa.load(file_path, sr=sample_rate)
+    
+    #ESTO SE REPITE TODO EN audio2note
+    X = fft(signal)
+    X_mag = np.absolute(X)
 
-    # extract Chroma
-    chroma = librosa.feature.chroma_cens(y=signal, sr=sr)
+    # generate x values (frequencies)
+    f = np.linspace(0, sample_rate, len(X_mag))
+    f_bins = int(len(X_mag)*0.1) 
+    
+    #plt.plot(f[:f_bins], X_mag[:f_bins])
 
-    if not correctShape(chroma.shape[1]) :
-        chroma = normalizeShape(chroma)
+    # find peaks in Y values. Use height value to filter lower peaks
+    _, properties = find_peaks(X_mag, height=100)
+    if len(properties['peak_heights']) > 0:
+        y_peak = properties['peak_heights'][0]
 
-    chroma_reshape = tf.reshape(chroma, [ 1,12,130])
-    my_prediction = my_model.predict(chroma_reshape)
+        # get index for the peak
+        peak_i = np.where(X_mag[:f_bins] == y_peak)
+
+        # if we found an for a peak we print the note
+        if len(peak_i) > 0:
+    ## HASTA ACA 
+            # extract Chroma
+             chroma = librosa.feature.chroma_cens(y=signal, sr=sample_rate)
+
+             if not correctShape(chroma.shape[1]) :
+                chroma = normalizeShape(chroma)
+
+             chroma_reshape = tf.reshape(chroma, [ 1,12,130])
+             my_prediction = my_model.predict(chroma_reshape)
    
-    index = np.argmax(my_prediction)
-    print("chord: " + CATEGORIES[index])
+             index = np.argmax(my_prediction)
+             print("chord: " + CATEGORIES[index])
 
     return CATEGORIES[index]
 
@@ -111,7 +131,7 @@ def detectAndPrintChord(s,q, y, sr, samples, a, b, scorePath):
     else:    
         data = y[samples[a]:samples[b]]
 
-    playedChord = getChordFromRNN(y=data,sr=sr)
+    playedChord = getChordFromRNN(data,sr)
     print("chord: " + playedChord)
     
     q.put(playedChord)

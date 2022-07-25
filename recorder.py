@@ -4,7 +4,7 @@ import wave
 from warnings import simplefilter
 from threading import Thread
 from music21 import stream as m21stream
-
+import time
 # solve local imports
 import os, sys
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -79,10 +79,13 @@ class Recorder:
             else:
                 processThread = Thread(target = audio2chord.processAudio, args =(self.noteStream,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
                 processThread.start()
+        processThread.join()
 
     def stop(self):
-        self.stream.stop_stream()
         self.recording = False
+        time.sleep(2)
+        self.stream.stop_stream()
+       
        
 
     def close(self):     
