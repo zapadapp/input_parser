@@ -10,7 +10,6 @@ from music21 import stream as m21stream
 from array import ArrayType
 import keras
 import librosa
-from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
 # solve local imports
@@ -58,9 +57,7 @@ def normalizeShape(chroma_mat):
 
 
 def getChordFromRNN(signal, sample_rate):
-    my_model = keras.models.load_model(chord_model)
-
-    
+      
     #ESTO SE REPITE TODO EN audio2note
     X = fft(signal)
     X_mag = np.absolute(X)
@@ -83,18 +80,18 @@ def getChordFromRNN(signal, sample_rate):
         if len(peak_i) > 0:
     ## HASTA ACA 
             # extract Chroma
-             chroma = librosa.feature.chroma_cens(y=signal, sr=sample_rate)
+            chroma = librosa.feature.chroma_cens(y=signal, sr=sample_rate)
 
-             if not correctShape(chroma.shape[1]) :
+            if not correctShape(chroma.shape[1]) :
                 chroma = normalizeShape(chroma)
 
-             chroma_reshape = tf.reshape(chroma, [ 1,12,130])
-             my_prediction = my_model.predict(chroma_reshape)
+            chroma_reshape = tf.reshape(chroma, [ 1,12,130])
+            my_prediction = chord_model.predict(chroma_reshape)
    
-             index = np.argmax(my_prediction)
-             print("chord: " + CATEGORIES[index])
+            index = np.argmax(my_prediction)
+            print("chord: " + CATEGORIES[index])
 
-    return CATEGORIES[index]
+            return CATEGORIES[index]
 
 def getNotesFromChords(chord):
     notas_string = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']	
