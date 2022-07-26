@@ -55,10 +55,8 @@ def normalizeShape(chroma_mat):
         i = i +1 
     return chroma_mat
 
-
-def getChordFromRNN(signal, sample_rate):
-      
-    #ESTO SE REPITE TODO EN audio2note
+def isSoundToChord(signal, sample_rate):
+     #ESTO SE REPITE TODO EN audio2note
     X = fft(signal)
     X_mag = np.absolute(X)
 
@@ -67,7 +65,6 @@ def getChordFromRNN(signal, sample_rate):
     f_bins = int(len(X_mag)*0.1) 
     
     #plt.plot(f[:f_bins], X_mag[:f_bins])
-
     # find peaks in Y values. Use height value to filter lower peaks
     _, properties = find_peaks(X_mag, height=100)
     if len(properties['peak_heights']) > 0:
@@ -76,22 +73,24 @@ def getChordFromRNN(signal, sample_rate):
         # get index for the peak
         peak_i = np.where(X_mag[:f_bins] == y_peak)
 
-        # if we found an for a peak we print the note
-        if len(peak_i) > 0:
-    ## HASTA ACA 
+        return len(peak_i) > 0 
+    return False 
+
+def getChordFromRNN(signal, sample_rate):
+
             # extract Chroma
-            chroma = librosa.feature.chroma_cens(y=signal, sr=sample_rate)
+    chroma = librosa.feature.chroma_cens(y=signal, sr=sample_rate)
 
-            if not correctShape(chroma.shape[1]) :
-                chroma = normalizeShape(chroma)
+    if not correctShape(chroma.shape[1]) :
+        chroma = normalizeShape(chroma)
 
-            chroma_reshape = tf.reshape(chroma, [ 1,12,130])
-            my_prediction = chord_model.predict(chroma_reshape)
+    chroma_reshape = tf.reshape(chroma, [ 1,12,130])
+    my_prediction = chord_model.predict(chroma_reshape)
    
-            index = np.argmax(my_prediction)
-            print("chord: " + CATEGORIES[index])
+    index = np.argmax(my_prediction)
+    print("chord: " + CATEGORIES[index])
 
-            return CATEGORIES[index]
+    return CATEGORIES[index]
 
 def getNotesFromChords(chord):
     notas_string = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']	
@@ -99,6 +98,7 @@ def getNotesFromChords(chord):
     nota_3 =''
     octaveIndex = 2
     secondNoteIndex = 3
+    
 
     if len(chord) == 2:
         octaveIndex = 1
@@ -129,7 +129,7 @@ def detectAndPrintChord(s,q, y, sr, samples, a, b, scorePath):
         data = y[samples[a]:samples[b]]
 
     playedChord = getChordFromRNN(data,sr)
-    print("chord: " + playedChord)
+    print("chord:{}" .format(playedChord))
     
     q.put(playedChord)
     triada = getNotesFromChords(playedChord)
@@ -148,41 +148,30 @@ def processAudio(s,q, audioPath, scorePath):
     # Note: we should be doing this in another thread so that we do not have to wait for this to finish to record another wave file.
     
     y, sr = librosa.load(audioPath)
-    # generate image showing the audio input with the onset times
-    #plt.figure(figsize=(14, 5))
-    #librosa.display.waveshow(y, sr)
+    if isSoundToChord(y,sr) :
+        onset_frames = librosa.onset.onset_detect(y, sr=sr, wait=1, pre_avg=1, post_avg=1, pre_max=1, post_max=1)
+        samples = librosa.frames_to_samples(onset_frames)
 
-    onset_frames = librosa.onset.onset_detect(y, sr=sr, wait=1, pre_avg=1, post_avg=1, pre_max=1, post_max=1)
-    #onset_times = librosa.frames_to_time(onset_frames)
-    
-    #plt.vlines(onset_times, -0.8, 0.79, color='r', alpha=0.8) 
-    #plt.savefig(image_path)
-    # plt.show()
-    # plt.close()
+        # filter lower samples
+        filteredSamples = filterLowSamples(samples)
 
-    # convert frames to samples
-    samples = librosa.frames_to_samples(onset_frames)
+        # get indexes of all samples in the numpy array
+        indexes = np.where(filteredSamples>0)
 
-    # filter lower samples
-    filteredSamples = filterLowSamples(samples)
+        length = len(indexes[0])
+        j = 0
 
-    # get indexes of all samples in the numpy array
-    indexes = np.where(filteredSamples>0)
-
-    length = len(indexes[0])
-    j = 0
-
-    # iterate over all indexes of the onsets. What we do here is group indexes by two, so that we have the beginning and ending of 
-    # the audio sample that we will use to get the note from.
-    # For example, if we have 4 onsets (indexes 0 to 3) we use these segments:
-    # 0 to 1
-    # 1 to 2
-    # 2 to 3
-    # Next step: we should also use whatever piece of audio before the first index and after the last one.
-    for i in indexes[0]:
-        j = i
+        # iterate over all indexes of the onsets. What we do here is group indexes by two, so that we have the beginning and ending of 
+        # the audio sample that we will use to get the note from.
+        # For example, if we have 4 onsets (indexes 0 to 3) we use these segments:
+        # 0 to 1
+        #   1 to 2
+        # 2 to 3
+        # Next step: we should also use whatever piece of audio before the first index and after the last one.
+        for i in indexes[0]:
+            j = i
         
-        if j < length-1:
-            detectAndPrintChord(s, q, y, sr, filteredSamples, j, j+1, scorePath)
-        elif j == length-1:
-            detectAndPrintChord(s, q, y, sr, filteredSamples, j, 999, scorePath)
+            if j < length-1:
+                detectAndPrintChord(s, q, y, sr, filteredSamples, j, j+1, scorePath)
+            elif j == length-1:
+                detectAndPrintChord(s, q, y, sr, filteredSamples, j, 999, scorePath)
