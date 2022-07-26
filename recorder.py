@@ -4,7 +4,7 @@ import wave
 from warnings import simplefilter
 from threading import Thread
 from music21 import stream as m21stream
-
+import time
 # solve local imports
 import os, sys
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -54,7 +54,7 @@ class Recorder:
                 rate=self.RATE, input=True,
                 frames_per_buffer=self.CHUNK, input_device_index=deviceChoice)
 
-    def record(self, note_q, detect):
+    def record(self, note_q, detect):    
         self.recording = True
         self.noteStream = m21stream.Stream()
 
@@ -62,7 +62,7 @@ class Recorder:
             frames = []
             print("recording...")
             for i in range(0, int(self.RATE / self.CHUNK * self.RECORD_SECONDS)):
-                data = self.stream.read(self.CHUNK)
+                data = self.stream.read(self.CHUNK,exception_on_overflow=False)
                 frames.append(data)
             print("finished recording")
 
@@ -79,12 +79,16 @@ class Recorder:
             else:
                 processThread = Thread(target = audio2chord.processAudio, args =(self.noteStream,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
                 processThread.start()
+        processThread.join()
 
     def stop(self):
         self.recording = False
-
-    def close(self):
+        time.sleep(2)
         self.stream.stop_stream()
+       
+       
+
+    def close(self):     
         self.stream.close()
         self.audio.terminate()
 
