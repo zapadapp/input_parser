@@ -16,7 +16,7 @@ def filterLowSamples(samples):
     # remove elements for given indexes
     return np.delete(samples, indexes)
 
-def detectAndPrintNote(s,q, y, sr, samples, a, b, scorePath):
+def detectNote(y, sr, samples, a, b):
     # limit the audio input from sample in index a to sample in index b, unless b is 999 which means that it is the end of the audio data
     if b == 999:
         data = y[samples[a]:]
@@ -31,7 +31,6 @@ def detectAndPrintNote(s,q, y, sr, samples, a, b, scorePath):
     f = np.linspace(0, sr, len(X_mag))
     f_bins = int(len(X_mag)*0.1) 
     
-    #plt.plot(f[:f_bins], X_mag[:f_bins])
 
     # find peaks in Y values. Use height value to filter lower peaks
     _, properties = find_peaks(X_mag, height=100)
@@ -44,15 +43,13 @@ def detectAndPrintNote(s,q, y, sr, samples, a, b, scorePath):
         # if we found an for a peak we print the note
         if len(peak_i) > 0:
             nota = convertToNote(str(librosa.hz_to_note(f[peak_i[0]])))
+        return 
+
+def printNote(s,q,scorePath,nota):
             print("Detected note: {}".format(nota))
             q.put(nota)
             s.append(note.Note(nota))
             print(s.write('lily.png', fp=os.path.join("../front/tmp", scorePath)))
-            #q.put(s)
-            #print("Detected note: {}".format(str(librosa.hz_to_note(f[peak_i[0]]))))
-        return 
-
-    #print("No detected note")    
 
 def convertToNote(val) :
     nota = str.replace(str.replace(val, "['", ""), "']", "")
@@ -75,17 +72,8 @@ def processAudio(s,q, audioPath, scorePath):
     # Note: we should be doing this in another thread so that we do not have to wait for this to finish to record another wave file.
     
     y, sr = librosa.load(audioPath)
-    # generate image showing the audio input with the onset times
-    #plt.figure(figsize=(14, 5))
-    #librosa.display.waveshow(y, sr)
 
     onset_frames = librosa.onset.onset_detect(y, sr=sr, wait=1, pre_avg=1, post_avg=1, pre_max=1, post_max=1)
-    #onset_times = librosa.frames_to_time(onset_frames)
-    
-    #plt.vlines(onset_times, -0.8, 0.79, color='r', alpha=0.8) 
-    #plt.savefig(image_path)
-    # plt.show()
-    # plt.close()
 
     # convert frames to samples
     samples = librosa.frames_to_samples(onset_frames)
@@ -110,6 +98,6 @@ def processAudio(s,q, audioPath, scorePath):
         j = i
         
         if j < length-1:
-            detectAndPrintNote(s, q, y, sr, filteredSamples, j, j+1, scorePath)
+            printNote(s,q,scorePath,detectNote( y, sr, filteredSamples, j, j+1))
         elif j == length-1:
-            detectAndPrintNote(s, q, y, sr, filteredSamples, j, 999, scorePath)
+            printNote(s,q,scorePath, detectNote(y, sr, filteredSamples, j, 999))
