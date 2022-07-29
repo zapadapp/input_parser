@@ -72,8 +72,8 @@ def isSoundToChord(signal, sample_rate):
 
         # get index for the peak
         peak_i = np.where(X_mag[:f_bins] == y_peak)
-
-        return len(peak_i) > 0 
+        print("Imprimo el prom de X_mag {} ".format(np.mean(X_mag)))
+        return np.mean(X_mag) > 4
     return False 
 
 def getChordFromRNN(signal, sample_rate):
@@ -160,7 +160,7 @@ def processAudio(s,q, audioPath, scorePath):
 
         length = len(indexes[0])
         j = 0
-
+        print("Imprimo el len de indexes {} ".format(len(indexes[0])))
         # iterate over all indexes of the onsets. What we do here is group indexes by two, so that we have the beginning and ending of 
         # the audio sample that we will use to get the note from.
         # For example, if we have 4 onsets (indexes 0 to 3) we use these segments:
