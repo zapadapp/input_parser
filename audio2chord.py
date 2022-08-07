@@ -1,6 +1,4 @@
-from msvcrt import getch
 import os
-import librosa
 import numpy as np
 import librosa.display
 from scipy.signal import find_peaks
@@ -11,7 +9,6 @@ from music21 import stream as m21stream
 from array import ArrayType
 import keras
 import librosa
-import tensorflow as tf
 import audio2note
 # solve local imports
 import sys
@@ -22,9 +19,10 @@ sys.path.insert(0, os.path.join(WORKSPACE, "chord_cnn"))
 #from parser_data import normalizeShape, correctShape
 
 
-CATEGORIES = ["A","A#","B","C","C#","D","D#","E","F","F#","G","G#"]
-CATEGORIES = ['A','A-','A#','A#-','B','B-','C','C-','C#','C#-','D','D-',
-                'D#','D#-','E','E-','F','F-','F#','F#-','G','G-','G#','G#-']
+#CATEGORIES = ["A","A#","B","C","C#","D","D#","E","F","F#","G","G#"]
+CATEGORIES = ["A","A#","A#-","A-","B","B-","C","C#","C#-","C-","D","D#",
+              "D#-","D-","E","E-","F","F#","F#-","F-","G","G#","G#-","G-"]
+
 SIGNAL_SHAPE = 65760
 chord_model = keras.models.load_model('../chord_cnn/modelo-acordes-v02.h5')
 
@@ -63,7 +61,6 @@ def getOctaveFromChord(signal, sample_rate):
     # generate x values (frequencies)
     f = np.linspace(0, sample_rate, len(X_mag))
     f_bins = int(len(X_mag)*0.1) 
-    
 
     # find peaks in Y values. Use height value to filter lower peaks
     _, properties = find_peaks(X_mag, height=100)
@@ -81,11 +78,11 @@ def getOctaveFromChord(signal, sample_rate):
             if octava == "#":
                 octava = nota[2]
             return int(octava)
-    return 0
+    return -1
     
 def isSoundFromChord(signal, sample_rate):
    octava = getOctaveFromChord(signal, sample_rate) 
-   #print("ISSOUND {} ".format(octava))
+   print("ISSOUND {} ".format(octava))
    x = fft(signal)
    x_mag = np.absolute(x)
    return (octava > 2 and octava < 6 )  and np.mean(x_mag) > 1
@@ -106,8 +103,8 @@ def getChordFromRNN(signal, sample_rate):
     index = np.argmax(my_prediction)
     chord= CATEGORIES[index]
     print("chord: {}" .format(chord))
-    octava = getOctaveFromChord(signal,sample_rate)
-    chord = chord + str(octava)
+    #octava = getOctaveFromChord(signal,sample_rate)
+    #chord = chord + str(octava)
     return chord
 
 def getNotesFromChords(chord,signal,sr):
@@ -125,9 +122,7 @@ def getNotesFromChords(chord,signal,sr):
       else:
         chord = chord[0]
             	
-    nota = chord[0]
-   # octava = int(chord[octaveIndex])
-    indice = notas_string.index(nota)
+    indice = notas_string.index(chord)
     if ((indice + secondNoteIndex) / 12) >= 1 :
         print(indice + secondNoteIndex)
         nota_2 = notas_string[((indice + secondNoteIndex )%12)] + str(octava + 1)
@@ -143,19 +138,24 @@ def getNotesFromChords(chord,signal,sr):
      	 	
     return triada
 
-def detectAndPrintChord(s,q, y, sr, samples, a, b, scorePath):
+def detectAndPrintChord(s, q, y, sr, samples, a, b, scorePath):
     # limit the audio input from sample in index a to sample in index b, unless b is 999 which means that it is the end of the audio data
     if b == 999:
         data = y[samples[a]:]
     else:    
         data = y[samples[a]:samples[b]]
+
+    # return fast in case there is nothing to process
+    if len(data) == 0:
+        return
+
     #("The shape of signal is: {}".format(data.shape))
     #ACA DEBERIAMOS RELLENAR HASTA LOS 3 SEGUNDOS LA SEÑAL
     data = resizeSignal(data)
     if isSoundFromChord(data,sr):
         playedChord = getChordFromRNN(data,sr)
         q.put(playedChord)
-        triada = getNotesFromChords(playedChord,y,sr)
+        triada = getNotesFromChords(playedChord,data,sr)
         s.append(chord.Chord(triada))
         print(s.write('lily.png', fp=os.path.join("tmp", scorePath)))
         print("Detected chord: {}\n".format(playedChord))
@@ -185,14 +185,14 @@ def processAudio(s,q, audioPath, scorePath):
     indexes = np.where(filteredSamples>0)
 
     length = len(indexes[0])
-    #print("We are {} onSetDetected\n".format(length))
+    print("len samples {}".format(length))
     j = 0
-    #print("Imprimo el len de indexes {} ".format(len(indexes[0])))
+
     # iterate over all indexes of the onsets. What we do here is group indexes by two, so that we have the beginning and ending of 
     # the audio sample that we will use to get the note from.
     # For example, if we have 4 onsets (indexes 0 to 3) we use these segments:
     # 0 to 1
-    #   1 to 2
+    # 1 to 2
     # 2 to 3
     # Next step: we should also use whatever piece of audio before the first index and after the last one.
     for i in indexes[0]:

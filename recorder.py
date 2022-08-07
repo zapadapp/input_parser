@@ -70,7 +70,9 @@ class Recorder:
         ## SE AGREGA SLEEP PARA ESPERAR QUE LOS THREADS TERMINEN SU TRABAJO 
         time.sleep(2)
         self.stream.stop_stream()
-       
+
+    def reproduce(self):
+        self.noteStream.show("midi")   
        
 
     def close(self):     
