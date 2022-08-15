@@ -26,7 +26,6 @@ chord_model = keras.models.load_model('../chord_cnn/modelo-acordes-v02.h5')
 def filterLowSamples(samples):
     # find indexes of all elements lower than 2000 from samples
     indexes = np.where(samples < 2000)
-
     # remove elements for given indexes
     return np.delete(samples, indexes)
 
@@ -47,34 +46,6 @@ def normalizeShape(chroma_mat):
         i = i +1 
     return chroma_mat
 
-""" def getOctaveAndSoundFromChord(signal, sample_rate):
- # calculate FFT and absolute values
-
-    X = fft(signal)
-    X_mag = np.absolute(X)
-    # generate x values (frequencies)
-    f = np.linspace(0, sample_rate, len(X_mag))
-    f_bins = int(len(X_mag)*0.1) 
-    # find peaks in Y values. Use height value to filter lower peaks
-    _, properties = find_peaks(X_mag, height=100)
-    if len(properties['peak_heights']) > 0:
-        y_peak = properties['peak_heights'][0]
-        # get index for the peak
-        peak_i = np.where(X_mag[:f_bins] == y_peak)
-        # if we found an for a peak we print the note
-        if len(peak_i) > 0:
-            print("Heartz {}".format(f[peak_i[0]]))
-            print("Heartz {}".format(f[np.where(X_mag == np.max(X_mag))]))
-            #print("Heartz {}".format(np.mean(f * X_mag[:f_bins])))            
-            nota = str(librosa.hz_to_note(f[peak_i[0]]))
-            nota = audio2note.convertToNote(nota)
-            octava = nota[1]
-            if octava == "#":
-                #octava = nota[2]
-                octava = 4
-            #return int(octava), True
-            return 4, True
-    return -1, False  """
 
 def getOctaveAndSoundFromChord(signal, sample_rate):
  # calculate FFT and absolute values
@@ -108,7 +79,8 @@ def getOctaveAndSoundFromChord(signal, sample_rate):
             if octava == "#":
                 octava = nota[2]
             return int(octava), True
-    return -1, False
+
+    return -1, False 
 
 def getChroma(signal,sample_rate):
     # extract Chroma
@@ -133,7 +105,7 @@ def getNotesFromChords(chord,signal,sr,octava):
     nota_3 =''
    # octaveIndex = 2
     secondNoteIndex = 4
-
+    
     if '-' in chord :
       secondNoteIndex = 3
       if '#' in chord:
@@ -155,6 +127,7 @@ def getNotesFromChords(chord,signal,sr,octava):
     triada = [chord, nota_2, nota_3]
      	 	
     return triada
+    
 def detectAndPrintChord(s, q, y, sr, samples, a, b, scorePath):
     # limit the audio input from sample in index a to sample in index b, unless b is 999 which means that it is the end of the audio data
     if b == 999:
@@ -174,8 +147,6 @@ def detectAndPrintChord(s, q, y, sr, samples, a, b, scorePath):
         playedChord = getChordFromRNN(data,sr)
         q.put(playedChord)
         triada = getNotesFromChords(playedChord,data,sr,octava)
-        """ rate,data = getNotesFromChords(data,sr)
-        reduced_noise = nr.reduce_noise(y=data,sr=rate) """
         s.append(chord.Chord(triada))
         print(s.write('lily.png', fp=os.path.join("tmp", scorePath)))
         print("Detected chord: {}\n".format(playedChord))
@@ -202,7 +173,6 @@ def processAudio(s,q, audioPath, scorePath):
     length = len(indexes[0])
     print("len samples {}".format(length))
     j = 0
-
     if length > 10 :
         return
     # iterate over all indexes of the onsets. What we do here is group indexes by two, so that we have the beginning and ending of 
