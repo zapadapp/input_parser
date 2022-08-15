@@ -30,7 +30,6 @@ chord_model = keras.models.load_model('../chord_cnn/modelo-acordes-v02.h5')
 def filterLowSamples(samples):
     # find indexes of all elements lower than 2000 from samples
     indexes = np.where(samples < 2000)
-
     # remove elements for given indexes
     return np.delete(samples, indexes)
 
@@ -52,7 +51,7 @@ def normalizeShape(chroma_mat):
         i = i +1 
     return chroma_mat
  
-def getOctaveFromChord(signal, sample_rate):
+def getOctaveAndSoundFromChord(signal, sample_rate):
  # calculate FFT and absolute values
     
     X = fft(signal)
@@ -77,15 +76,8 @@ def getOctaveFromChord(signal, sample_rate):
             octava = nota[1]
             if octava == "#":
                 octava = nota[2]
-            return int(octava)
-    return -1
-    
-def isSoundFromChord(signal, sample_rate):
-   octava = getOctaveFromChord(signal, sample_rate) 
-   print("ISSOUND {} ".format(octava))
-   x = fft(signal)
-   x_mag = np.absolute(x)
-   return (octava > 2 and octava < 6 )  and np.mean(x_mag) > 1
+            return int(octava), True
+    return -1, False 
 
 def getChroma(signal,sample_rate):
     # extract Chroma
@@ -107,14 +99,13 @@ def getChordFromRNN(signal, sample_rate):
     #chord = chord + str(octava)
     return chord
 
-def getNotesFromChords(chord,signal,sr):
+def getNotesFromChords(chord,signal,sr,octava):
     notas_string = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]
     nota_2 =''
     nota_3 =''
    # octaveIndex = 2
     secondNoteIndex = 4
-    octava = getOctaveFromChord(signal,sr)
-    print("La octava es {}".format(octava))
+  
     if '-' in chord :
       secondNoteIndex = 3
       if '#' in chord:
@@ -148,14 +139,15 @@ def detectAndPrintChord(s, q, y, sr, samples, a, b, scorePath):
     # return fast in case there is nothing to process
     if len(data) == 0:
         return
-
+    octava, is_sound = getOctaveAndSoundFromChord(data,sr)
+    print("La octava es {}".format(octava))
     #("The shape of signal is: {}".format(data.shape))
     #ACA DEBERIAMOS RELLENAR HASTA LOS 3 SEGUNDOS LA SEÑAL
-    data = resizeSignal(data)
-    if isSoundFromChord(data,sr):
+    # data = resizeSignal(data)
+    if is_sound:
         playedChord = getChordFromRNN(data,sr)
         q.put(playedChord)
-        triada = getNotesFromChords(playedChord,data,sr)
+        triada = getNotesFromChords(playedChord,data,sr,octava)
         s.append(chord.Chord(triada))
         print(s.write('lily.png', fp=os.path.join("tmp", scorePath)))
         print("Detected chord: {}\n".format(playedChord))
@@ -187,7 +179,8 @@ def processAudio(s,q, audioPath, scorePath):
     length = len(indexes[0])
     print("len samples {}".format(length))
     j = 0
-
+    if length > 10 :
+        return
     # iterate over all indexes of the onsets. What we do here is group indexes by two, so that we have the beginning and ending of 
     # the audio sample that we will use to get the note from.
     # For example, if we have 4 onsets (indexes 0 to 3) we use these segments:
