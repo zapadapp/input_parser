@@ -52,9 +52,13 @@ def detectAndPrintNote(s, q, scorePath, y, sr, samples, a, b):
 
 
 def convertToNote(val) :
+    print("nota: {}".format(val))
     nota = str.replace(str.replace(val, "['", ""), "']", "")
-    if len(nota) == 3 :
+    if len(nota) == 3:
         nota = nota[0] + "#" + nota[2]
+
+    if len(nota) == 4 and nota[2] == "-":    
+        nota = nota[0] + "#" + nota[3]
 
     return nota
 
