@@ -40,32 +40,55 @@ class Drawer:
         x = self.scoreX + int((len(self.drawnElements) * 40) + 20)
 
         self.drawExtraLines(x,y)
+        blanks = 0
         match type:
             case "round":
-                self.compassWeight = self.compassWeight + 4
                 self.drawRound(x, y)
-            case "white":
-                self.compassWeight = self.compassWeight + 2
-                self.drawWhite(x, y)
-            case "black":
+                self.drawnNotes.append(note)
+                self.drawnElements.append(note)
+                self.gotoBase()
                 self.compassWeight = self.compassWeight + 1
+                for i in range(3):
+                    # "draw" a blank
+                    self.drawnElements.append("blank")
+                    self.compassWeight = self.compassWeight + 1
+                    self.gotoBase()
+                    self.drawSplitLine()
+            case "white":
+                self.drawWhite(x, y)
+                self.drawnNotes.append(note)
+                self.drawnElements.append(note)
+                self.gotoBase()
+                self.compassWeight = self.compassWeight + 1
+                # "draw" a blank
+                self.drawnElements.append("blank")
+                self.compassWeight = self.compassWeight + 1
+                self.gotoBase()
+                self.drawSplitLine()       
+            case "black":
+                print(self.compassWeight)
+                print(len(self.drawnElements))
                 self.drawBlack(x, y)
+                self.compassWeight = self.compassWeight + 1
+                self.drawnNotes.append(note)
+                self.drawnElements.append(note)
+                self.gotoBase()
+                self.drawSplitLine()       
             case "quaver":
                 self.compassWeight = self.compassWeight + 0.5
                 self.drawQuaver(x, y)
+                self.drawnNotes.append(note)
+                self.drawnElements.append(note)
+                self.gotoBase()
+                self.drawSplitLine()       
             case "semiquaver":
                 self.compassWeight = self.compassWeight + 0.25
                 self.drawSemiQuaver(x, y)
+                self.drawnNotes.append(note)
+                self.drawnElements.append(note)
+                self.gotoBase()
+                self.drawSplitLine()       
 
-        self.drawnNotes.append(note)
-        self.drawnElements.append(note)
-        self.gotoBase()
-
-        if len(self.drawnNotes)%4 == 0:
-            self.drawSplitLine()          
-
-    def drawBlank(self):
-        return
     def drawBlack(self, x, y):
         self.goto(x, y)
         self.t.begin_fill()
@@ -177,13 +200,16 @@ class Drawer:
         return -1   
 
     def drawSplitLine(self):
-        print("split")
-        x = self.scoreX + int((len(self.drawnElements) * 40) + 20)
-        self.goto(x, self.scoreY)
-        self.t.left(90)
-        self.t.forward(80)
-        self.gotoBase()
-        self.drawnElements.append("split")
+        if self.compassWeight%4 == 0:
+            print("split")
+            x = self.scoreX + int((len(self.drawnElements) * 40) + 20)
+            print("in: {}|{}".format(self.scoreX, self.scoreY))
+            print("going to: {}|{}".format(x, self.scoreY))
+            self.goto(x, self.scoreY)
+            self.t.left(90)
+            self.t.forward(80)
+            self.gotoBase()
+            self.drawnElements.append("split")
 
     def drawExtraLines(self, x, y):
         if y < self.scoreY - 10 :
@@ -257,17 +283,22 @@ screen.setup(1200, 400)
 d = Drawer()
 d.drawScore(-230,50)
 
-d.drawNote("E4", "black")
-d.drawNote("F4", "white")
-d.drawNote("A4", "quaver")
-d.drawNote("A4", "semiquaver")
-d.drawNote("C4", "black")
-d.drawNote("D4", "black")
-d.drawNote("B3", "round")
-d.drawNote("B4", "quaver")
-d.drawNote("E5", "quaver")
+# d.drawNote("E4", "black")
+# d.drawNote("F4", "white")
+# d.drawNote("A4", "quaver")
+# d.drawNote("A4", "semiquaver")
+# d.drawNote("C4", "black")
+# d.drawNote("D4", "black")
+# d.drawNote("B3", "round")
+# d.drawNote("B4", "quaver")
+# d.drawNote("E5", "quaver")
 d.drawNote("G5", "round")
 d.drawNote("B5", "black")
-d.drawNote("D4", "black")
+d.drawNote("D4", "round")
+d.drawNote("F4", "white")
+d.drawNote("B4", "quaver")
+d.drawNote("E5", "quaver")
+
+
 
 turtle.done()
