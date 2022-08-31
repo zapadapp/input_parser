@@ -136,6 +136,7 @@ class Drawer:
         sharp = note.__contains__('#')
 
         self.drawExtraLines(x,y)
+        blanks = 0
         match type:
             case "round":
                 self.drawRound(x, y, sharp, False)
