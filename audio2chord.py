@@ -24,7 +24,7 @@ CATEGORIES = ["A","A-","B","B-","C", "C-","D", "D-","E","E-",
               "A","A#","A#-","A-","B","B-","C","C#","C#-","C-",
               "D","D#","D#-","D-","E","E-","F","F#","F#-","F-",
               "G","G#","G#-","G-"]
-              
+
 INSTRUMENT = ["Guitar","Piano"]
 chord_model = keras.models.load_model('../chord_cnn/modelo-acordes-v04.h5')
 
@@ -117,7 +117,6 @@ def getNotesFromChords(chord,octava):
             	
     indice = notas_string.index(chord)
     if ((indice + secondNoteIndex) / 12) >= 1 :
-        print(indice + secondNoteIndex)
         nota_2 = notas_string[((indice + secondNoteIndex )%12)] + str(octava + 1)
     else:
         nota_2 = notas_string[(indice + secondNoteIndex)]  + str(octava)
