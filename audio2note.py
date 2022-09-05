@@ -16,7 +16,8 @@ sys.path.insert(0, os.path.join(WORKSPACE, "note"))
 MY_MODEL = keras.models.load_model('../notes/modelo-notas-v01.h5')
 CATEGORIES = ["A2","A3","A4","B2","B3","B4","C3","C4","C5","D3","D4","D5","E2","E3","E4",
               "F2","F3","F4","G2","G3","G4",
-              "C4","D4","E4"]
+              "A3","A4","A5","B3","B4","B5","C3","C4","C5","D3","D4","D5","E3","E4","E5",
+              "F3","F4","F5","G3","G4","G5",]
 
 INSTRUMENT = ["Guitar","Piano"]
 NFFT = 512
@@ -47,12 +48,12 @@ def getNoteandInstrumentFromRNN(s, q, scorePath, y, sr, samples, a, b):
             mel_spec =  normalizeShape(mel_spec)
 
         if correctShape(mel_spec.shape[1]):
-            stft_reshape = tf.reshape(mel_spec, [ 1,N_MELS,SHAPE ])
-            my_prediction = MY_MODEL.predict(stft_reshape)
+            mel_reshape = tf.reshape(mel_spec, [ 1,N_MELS,SHAPE ])
+            my_prediction = MY_MODEL.predict(mel_reshape)
             index = np.argmax(my_prediction)
             nota = CATEGORIES[index]
         
-            if index < 14 :
+            if index < 21 :
                 instrument = INSTRUMENT[0]
 
         if note != "not recognize":
