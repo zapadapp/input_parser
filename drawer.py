@@ -1,5 +1,11 @@
 import turtle
-import time
+import sys
+import os
+
+FILE_PATH = os.path.dirname(os.path.realpath(__file__))
+sys.path.insert(0, FILE_PATH)
+import audio2chord
+
 class Drawer:
     def __init__(self, t, width, height):
         self.drawnNotes = []
@@ -45,7 +51,7 @@ class Drawer:
         self.drawExtraLines(x,y)
         match type:
             case "round":
-                self.drawRound(x, y, sharp)
+                self.drawRound(x, y, sharp, False)
                 self.drawnNotes.append(note)
                 self.drawnElements.append(note)
                 self.gotoBase()
@@ -57,7 +63,7 @@ class Drawer:
                     self.gotoBase()
                     self.drawSplitLine()
             case "white":
-                self.drawWhite(x, y, sharp)
+                self.drawWhite(x, y, sharp, False)
                 self.drawnNotes.append(note)
                 self.drawnElements.append(note)
                 self.gotoBase()
@@ -68,9 +74,7 @@ class Drawer:
                 self.gotoBase()
                 self.drawSplitLine()       
             case "black":
-                print(self.compassWeight)
-                print(len(self.drawnElements))
-                self.drawBlack(x, y, sharp)
+                self.drawBlack(x, y, sharp, False)
                 self.compassWeight = self.compassWeight + 1
                 self.drawnNotes.append(note)
                 self.drawnElements.append(note)
@@ -78,20 +82,112 @@ class Drawer:
                 self.drawSplitLine()       
             case "quaver":
                 self.compassWeight = self.compassWeight + 0.5
-                self.drawQuaver(x, y, sharp)
+                self.drawQuaver(x, y, sharp, False)
                 self.drawnNotes.append(note)
                 self.drawnElements.append(note)
                 self.gotoBase()
                 self.drawSplitLine()       
             case "semiquaver":
                 self.compassWeight = self.compassWeight + 0.25
-                self.drawSemiQuaver(x, y, sharp)
+                self.drawSemiQuaver(x, y, sharp, False)
                 self.drawnNotes.append(note)
                 self.drawnElements.append(note)
                 self.gotoBase()
-                self.drawSplitLine()       
+                self.drawSplitLine()    
 
-    def drawBlack(self, x, y, sharp):
+    def drawChord(self, chord, type):
+        octave = chord[len(chord)-1]
+        notes = audio2chord.getNotesFromChords(chord[:len(chord)-1], int(octave))
+        if len(notes) != 3:
+            return 
+        
+        firstNotePosY = int(self.getNoteYPos(notes[0]))
+        if firstNotePosY == -1:
+            print("invalid note")
+            return
+
+        secondNotePosY = int(self.getNoteYPos(notes[1]))
+        if secondNotePosY == -1:
+            print("invalid note")
+            return
+
+        thirdNotePosY = int(self.getNoteYPos(notes[2]))
+        if thirdNotePosY == -1:
+            print("invalid note")
+            return    
+
+        x = self.scoreX + int((len(self.drawnElements) * 40) + 20)
+
+        self.drawExtraLines(x,firstNotePosY)
+        self.drawExtraLines(x,thirdNotePosY)
+
+        match type:
+            case "round":
+                self.drawRound(x, firstNotePosY, notes[0].__contains__('#'), True)
+                self.gotoBase()
+                self.drawRound(x, secondNotePosY, notes[1].__contains__('#'), True)
+                self.gotoBase()
+                self.drawRound(x, thirdNotePosY, notes[2].__contains__('#'), True)
+                self.drawnNotes.append(chord)
+                self.drawnElements.append(chord)
+                self.gotoBase()
+                self.compassWeight = self.compassWeight + 1
+                for i in range(3):
+                    # "draw" a blank
+                    self.drawnElements.append("blank")
+                    self.compassWeight = self.compassWeight + 1
+                    self.gotoBase()
+                    self.drawSplitLine()
+            case "white":
+                self.drawWhite(x, firstNotePosY, notes[0].__contains__('#'), True)
+                self.gotoBase()
+                self.drawWhite(x, secondNotePosY, notes[1].__contains__('#'), True)
+                self.gotoBase()
+                self.drawWhite(x, thirdNotePosY, notes[2].__contains__('#'), True)                
+                self.drawnNotes.append(chord)
+                self.drawnElements.append(chord)
+                self.gotoBase()
+                self.compassWeight = self.compassWeight + 1
+                # "draw" a blank
+                self.drawnElements.append("blank")
+                self.compassWeight = self.compassWeight + 1
+                self.gotoBase()
+                self.drawSplitLine()       
+            case "black":
+                self.drawBlack(x, firstNotePosY, notes[0].__contains__('#'), True)
+                self.gotoBase()
+                self.drawBlack(x, secondNotePosY, notes[1].__contains__('#'), True)
+                self.gotoBase()
+                self.drawBlack(x, thirdNotePosY, notes[2].__contains__('#'), True)                
+                self.drawnNotes.append(chord)
+                self.drawnElements.append(chord)
+                self.compassWeight = self.compassWeight + 1
+                self.gotoBase()
+                self.drawSplitLine()       
+            case "quaver":
+                self.compassWeight = self.compassWeight + 0.5
+                self.drawQuaver(x, firstNotePosY, notes[0].__contains__('#'), True)
+                self.gotoBase()
+                self.drawQuaver(x, secondNotePosY, notes[1].__contains__('#'), True)
+                self.gotoBase()
+                self.drawQuaver(x, thirdNotePosY, notes[2].__contains__('#'), True)                
+                self.drawnNotes.append(chord)
+                self.drawnElements.append(chord)
+                self.gotoBase()
+                self.drawSplitLine()       
+            case "semiquaver":
+                self.compassWeight = self.compassWeight + 0.25
+                self.drawSemiQuaver(x, firstNotePosY, notes[0].__contains__('#'), True)
+                self.gotoBase()
+                self.drawSemiQuaver(x, secondNotePosY, notes[1].__contains__('#'), True)
+                self.gotoBase()
+                self.drawSemiQuaver(x, thirdNotePosY, notes[2].__contains__('#'), True)                
+                self.drawnNotes.append(chord)
+                self.drawnElements.append(chord)
+                self.gotoBase()
+                self.drawSplitLine()   
+
+    def drawBlack(self, x, y, sharp, isChord):
         self.goto(x, y)
         self.t.begin_fill()
         self.t.circle(10)
@@ -103,11 +199,11 @@ class Drawer:
         self.t.width(1)
 
         if sharp:
-            self.drawSharp(x, y)
+            self.drawSharp(x, y, isChord)
 
         return      
 
-    def drawWhite(self, x, y, sharp):
+    def drawWhite(self, x, y, sharp, isChord):
         self.goto(x, y)
         self.t.width(2)
         self.t.circle(9)
@@ -119,22 +215,22 @@ class Drawer:
         self.t.width(1)
 
         if sharp:
-            self.drawSharp(x, y)
+            self.drawSharp(x, y, isChord)
             
         return
 
-    def drawRound(self, x, y, sharp):
+    def drawRound(self, x, y, sharp, isChord):
         self.goto(x, y)
         self.t.width(2)
         self.t.circle(9)
         self.t.width(1)
 
         if sharp:
-            self.drawSharp(x, y)
+            self.drawSharp(x, y, isChord)
             
         return    
 
-    def drawQuaver(self, x, y, sharp):
+    def drawQuaver(self, x, y, sharp, isChord):
         self.goto(x, y)
         self.t.begin_fill()
         self.t.circle(10)
@@ -148,11 +244,11 @@ class Drawer:
         self.t.width(1)
 
         if sharp:
-            self.drawSharp(x, y)
+            self.drawSharp(x, y, isChord)
             
         return
 
-    def drawSemiQuaver(self, x, y, sharp):
+    def drawSemiQuaver(self, x, y, sharp, isChord):
         self.goto(x, y)
         self.t.begin_fill()
         self.t.circle(10)
@@ -171,16 +267,20 @@ class Drawer:
         self.t.width(1)
 
         if sharp:
-            self.drawSharp(x, y)
+            self.drawSharp(x, y, isChord)
             
         return   
 
-    def drawSharp(self, x, y):
+    def drawSharp(self, x, y, isChord):
         self.t.setheading(0)
         self.t.width(2)
         self.goto(x, y)
-        self.goto(x-7,y+25)
+        if isChord:
+            self.goto(x-20,y+5)
+        else:    
+            self.goto(x-7,y+25)
         newX, newY = self.t.position()
+        
         self.t.left(90)
         self.t.fd(12)
         self.goto(newX+4, newY)
@@ -240,7 +340,7 @@ class Drawer:
         return -1   
 
     def drawSplitLine(self):
-        if self.compassWeight > 4:
+        if self.compassWeight >= 4:
             print("split")
             x = self.scoreX + int((len(self.drawnElements) * 40) + 20)
             self.goto(x, self.scoreY)
@@ -317,31 +417,39 @@ class Drawer:
 
 
 
-screen = turtle.Screen()
-screen.reset()
-screen.setup(1200, 400)
+# screen = turtle.Screen()
+# screen.reset()
+# screen.setup(1200, 400)
 
-t = turtle.Turtle()
+# t = turtle.Turtle()
 
-d = Drawer(t, 1200, 400)
+# d = Drawer(t, 1200, 400)
 
-d.drawNote("E4", "quaver")
-d.drawNote("F4", "round")
-d.drawNote("A4", "quaver")
-d.drawNote("A#4", "semiquaver")
-d.drawNote("C4", "black")
-d.drawNote("D4", "black")
-d.drawNote("B#3", "round")
-d.drawNote("B4", "quaver")
-d.drawNote("E#5", "quaver")
-d.drawNote("G4", "round")
-d.drawNote("F#4", "black")
-d.drawNote("D4", "round")
-d.drawNote("F#4", "white")
-d.drawNote("B4", "quaver")
-d.drawNote("E#4", "semiquaver")
-d.drawNote("E4", "semiquaver")
+# d.drawNote("E4", "quaver")
+# d.drawNote("F4", "round")
+# d.drawNote("A4", "quaver")
+# d.drawNote("A#4", "semiquaver")
+# d.drawNote("C4", "black")
+# d.drawNote("D4", "black")
+# d.drawNote("B#3", "round")
+# d.drawNote("B4", "quaver")
+# d.drawNote("E#5", "quaver")
+# d.drawNote("G4", "round")
+# d.drawNote("F#4", "black")
+# d.drawNote("D4", "round")
+# d.drawNote("F#4", "white")
+# d.drawNote("B4", "quaver")
+# d.drawNote("E#4", "semiquaver")
+# d.drawNote("E4", "semiquaver")
+
+# d.drawChord("C4", "round")
+
+# d.drawChord("F4", "round")
+
+# d.drawChord("C5", "black")
+# d.drawChord("C4", "black")
+# d.drawChord("D4", "black")
+# d.drawNote("F#4", "black")
 
 
-
-turtle.done()
+# turtle.done()

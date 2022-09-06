@@ -114,7 +114,6 @@ def getChordAndIntrumentFromRNN(signal, sample_rate):
         instrument = INSTRUMENT[0]
     return instrument, chord
 
-
 def getNotesFromChords(chord,octava):
     notas_string = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]
     nota_2 =''
