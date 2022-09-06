@@ -30,13 +30,6 @@ class Recorder:
         self.audio = pyaudio.PyAudio()
         self.deviceChoice = deviceChoice
 
-<<<<<<< HEAD
-=======
-        self.stream = self.audio.open(format=self.FORMAT, channels=self.CHANNELS,
-                rate=self.RATE, input=True,
-                frames_per_buffer=self.CHUNK, input_device_index=deviceChoice)
-
->>>>>>> ecb50a0 (Add sharp to notes and fix compass weight)
     def record(self, note_q, detect, drawer):  
         if self.recording == True :
             print("Already recording")
@@ -66,7 +59,6 @@ class Recorder:
             waveFile.writeframes(b''.join(frames))
             waveFile.close()
 
-<<<<<<< HEAD
                 #self.processThread = Thread(target = audio2note.processAudio, args =(self.noteStream,drawer,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
                 #self.processThread.start()
             noteCO, timeCO = processAudio.processAudio(self.noteStream,drawer,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH, noteCO, timeCO,"note")
@@ -76,14 +68,6 @@ class Recorder:
                 # self.processThread.start()
                 # noteCO, timeCO = audio2chord.processAudio(self.noteStream, note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH)
 
-=======
-            if detect == 'note':
-                self.processThread = Thread(target = audio2note.processAudio, args =(self.noteStream,drawer,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
-                self.processThread.start()
-            else:
-                self.processThread = Thread(target = audio2chord.processAudio, args =(self.noteStream,drawer, note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
-                self.processThread.start()
->>>>>>> ecb50a0 (Add sharp to notes and fix compass weight)
         ##CUANDO SE STOPEA, ESPERO QUE TERMINEN LOS THREADS DE TRABAJAR
         #self.processThread.join()
 
