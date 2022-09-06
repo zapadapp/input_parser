@@ -10,7 +10,7 @@ from array import ArrayType
 import keras
 import librosa
 import audio2note
-import noisereduce as nr
+
 # solve local imports
 import sys
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))

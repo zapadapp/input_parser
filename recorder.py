@@ -34,7 +34,7 @@ class Recorder:
                 rate=self.RATE, input=True,
                 frames_per_buffer=self.CHUNK, input_device_index=deviceChoice)
 
-    def record(self, note_q, detect):  
+    def record(self, note_q, detect, drawer):  
         if self.recording == True :
             print("Pase Por aqui")
             return  
@@ -57,10 +57,10 @@ class Recorder:
             waveFile.close()
 
             if detect == 'note':
-                self.processThread = Thread(target = audio2note.processAudio, args =(self.noteStream,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
+                self.processThread = Thread(target = audio2note.processAudio, args =(self.noteStream,drawer,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
                 self.processThread.start()
             else:
-                self.processThread = Thread(target = audio2chord.processAudio, args =(self.noteStream,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
+                self.processThread = Thread(target = audio2chord.processAudio, args =(self.noteStream,drawer, note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
                 self.processThread.start()
         ##CUANDO SE STOPEA, ESPERO QUE TERMINEN LOS THREADS DE TRABAJAR
         self.processThread.join()

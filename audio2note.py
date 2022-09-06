@@ -8,6 +8,8 @@ from music21 import note
 import tensorflow as tf
 import keras
 import sys
+import drawer
+
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 WORKSPACE = os.path.dirname(FILE_PATH)
 
@@ -123,8 +125,8 @@ def detectAndPrintNote(s, q, scorePath, y, sr, samples, a, b):
             print("Detected note: {}".format(nota))
             q.put(nota)
             s.append(note.Note(nota))
-            print(s.write('lily.png', fp=os.path.join("../front/tmp", scorePath)))
-
+            #print(s.write('lily.png', fp=os.path.join("../front/tmp", scorePath)))
+            drawer.drawNote(nota,"black")
 
 def convertToNote(val) :
     print("nota: {}".format(val))
@@ -137,7 +139,7 @@ def convertToNote(val) :
 
     return nota
 
-def processAudio(s,q, audioPath, scorePath):
+def processAudio(s, drawer, q, audioPath, scorePath):
     ############################################################
     ##############    Actual audio processing    ###############
     ############################################################
