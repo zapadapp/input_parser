@@ -105,7 +105,6 @@ class Drawer:
         sharp = note.__contains__('#')
 
         self.drawExtraLines(x,y)
-        blanks = 0
         match type:
             case "round":
                 self.drawRound(x, y, sharp, False)
@@ -412,6 +411,9 @@ class Drawer:
             if self.compassSplits == self.maxCompasses:
                 self.splitScore()
 
+
+            leftover = self.compassWeight%4
+            self.compassWeight = leftover
 
     def drawExtraLines(self, x, y):
         if y < self.scoreY - 10 :
