@@ -415,6 +415,10 @@ class Drawer:
             leftover = self.compassWeight%4
             self.compassWeight = leftover
 
+            if self.compassSplits == self.maxCompasses:
+                self.splitScore()
+
+
     def drawExtraLines(self, x, y):
         if y < self.scoreY - 10 :
             self.drawBottomLines(x, y)
@@ -496,10 +500,7 @@ class Drawer:
 
 
 
-screen = turtle.Screen()
-screen.reset()
-screen.setup(1200, 400)
+# screen = turtle.Screen()
+# screen.reset()
+# screen.setup(1200, 400)
 
-t = turtle.Turtle()
-
-d = Drawer(t, 1200, 400)

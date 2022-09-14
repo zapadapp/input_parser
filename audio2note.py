@@ -81,6 +81,7 @@ def getNoteAndInstrumentFromRNN(s, q, drawer, scorePath, y, sr, samples, a, b, t
 
         if note != "":
             #nota = convertToNote(str(librosa.hz_to_note(f[peak_i[0]])))
+            figure = getFigure(duration)            
             print("Instrument {}\n".format( instrument))
             print("Note {}\n".format(nota))
             print("duration {}".format(duration))
