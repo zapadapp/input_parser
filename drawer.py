@@ -1,6 +1,7 @@
 import turtle
 import sys
 import os
+import time
 
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, FILE_PATH)
@@ -11,23 +12,25 @@ class Drawer:
         self.drawnNotes = []
         self.drawnElements = []
         self.t = t
-        self.t.speed(2)
+        self.t.speed(0)
         #self.t.hideturtle()
         self.scoreX = 0
         self.scoreY = 0
         self.lowestY = 0
         self.compassWeight = 0
+        self.maxCompasses = 4
+        self.compassSplits = 0
 
         #t.screensize(2000,2000)
             
         x, y = self.t.position()
         self.initScoreX = x - (width/2 - 10)
         self.initScoreY = y + (height/2 - 50)
+        self.drawCompassTempo(self.initScoreX, self.initScoreY+10)
+
         self.drawScore()
     
     def drawScore(self):
-        self.goto(self.initScoreX, self.initScoreY)
-        self.drawCompassTempo(self.initScoreX, self.initScoreY+10)
         self.goto(self.initScoreX, self.initScoreY)
 
         for y in range(4):
@@ -41,6 +44,14 @@ class Drawer:
         self.t.backward(1500)
 
         self.scoreX, self.scoreY = self.t.position()
+
+    def splitScore(self):
+        self.compassSplits = 0
+        self.drawnElements = []
+        self.gotoBase()
+        self.initScoreX, y = self.t.position()
+        self.initScoreY = y - 80
+        self.drawScore()
 
     def drawCompassTempo(self, x, y):
         self.goto(x, y)
@@ -367,16 +378,20 @@ class Drawer:
 
     def drawSplitLine(self):
         if self.compassWeight >= 4:
-            print("split")
             x = self.scoreX + int((len(self.drawnElements) * 40) + 20)
             self.goto(x, self.scoreY)
             self.t.left(90)
             self.t.forward(80)
             self.gotoBase()
             self.drawnElements.append("split")
+            self.compassSplits = self.compassSplits + 1
 
             leftover = self.compassWeight%4
             self.compassWeight = leftover
+
+            if self.compassSplits == self.maxCompasses:
+                self.splitScore()
+
 
     def drawExtraLines(self, x, y):
         if y < self.scoreY - 10 :
@@ -445,40 +460,49 @@ class Drawer:
 
             self.t.color("black")
 
+    def saveScore(self):
+        cv = self.t.getcanvas()
+        cv.postscript(file="score{}.ps".format(time.time()), colormode='color')        
 
 
-screen = turtle.Screen()
-screen.reset()
-screen.setup(1200, 400)
 
-t = turtle.Turtle()
+# screen = turtle.Screen()
+# screen.reset()
+# screen.setup(1200, 400)
 
-d = Drawer(t, 1200, 400)
+# t = turtle.Turtle()
 
-d.drawNote("E4", "quaver")
-d.drawNote("F4", "round")
-d.drawNote("A4", "quaver")
-d.drawNote("A#4", "semiquaver")
-d.drawNote("C4", "black")
-d.drawNote("D4", "black")
-d.drawNote("B#3", "round")
-d.drawNote("B4", "quaver")
-d.drawNote("E#5", "quaver")
-d.drawNote("G4", "round")
-d.drawNote("F#4", "black")
-# d.drawNote("D4", "round")
-# d.drawNote("F#4", "white")
+# d = Drawer(t, 1200, 400)
+
+# d.drawNote("E4", "quaver")
+# d.drawNote("F4", "round")
+# d.drawNote("A4", "quaver")
+# d.drawNote("A#4", "semiquaver")
+# d.drawNote("C4", "black")
+# d.drawNote("D4", "black")
+# d.drawNote("B#3", "round")
 # d.drawNote("B4", "quaver")
-# d.drawNote("E#4", "semiquaver")
-# d.drawNote("E4", "semiquaver")
+# d.drawNote("E#5", "quaver")
+# d.drawNote("G4", "round")
+# d.drawNote("F#4", "black")
+# # d.drawNote("D4", "round")
+# # d.drawNote("F#4", "white")
+# # d.drawNote("B4", "quaver")
+# # d.drawNote("E#4", "semiquaver")
+# # d.drawNote("E4", "semiquaver")
 
-# d.drawChord("C4", "round")
+# # d.drawChord("C4", "round")
 
-# d.drawChord("F4", "round")
+# # d.drawChord("F4", "round")
 
-# d.drawChord("C5", "black")
-# d.drawChord("C4", "black")
-# d.drawChord("D4", "black")
-d.drawNote("F#4", "black")
+# # d.drawChord("C5", "black")
+# # d.drawChord("C4", "black")
+# # d.drawChord("D4", "black")
+# d.drawNote("F#4", "black")
+# d.drawNote("G#4", "round")
+# d.drawNote("C5", "round")
 
-turtle.done()
+# cv = turtle.getcanvas()
+# cv.postscript(file="file_name.ps", colormode='color')
+
+# turtle.done()
