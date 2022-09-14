@@ -82,6 +82,14 @@ class Drawer:
         self.initScoreY = y - 80
         self.drawScore()
 
+    def splitScore(self):
+        self.compassSplits = 0
+        self.drawnElements = []
+        self.gotoBase()
+        self.initScoreX, y = self.t.position()
+        self.initScoreY = y - 80
+        self.drawScore()
+
     def drawCompassTempo(self, x, y):
         self.goto(x, y)
         self.t.width(2)
@@ -452,6 +460,10 @@ class Drawer:
 
             leftover = self.compassWeight%4
             self.compassWeight = leftover
+
+            if self.compassSplits == self.maxCompasses:
+                self.splitScore()
+
 
     def drawExtraLines(self, x, y):
         if y < self.scoreY - 10 :
