@@ -496,43 +496,10 @@ class Drawer:
 
 
 
-# screen = turtle.Screen()
-# screen.reset()
-# screen.setup(1200, 400)
+screen = turtle.Screen()
+screen.reset()
+screen.setup(1200, 400)
 
-# t = turtle.Turtle()
+t = turtle.Turtle()
 
-# d = Drawer(t, 1200, 400)
-
-# d.drawNote("E4", "quaver")
-# d.drawNote("F4", "round")
-# d.drawNote("A4", "quaver")
-# d.drawNote("A#4", "semiquaver")
-# d.drawNote("C4", "black")
-# d.drawNote("D4", "black")
-# d.drawNote("B#3", "round")
-# d.drawNote("B4", "quaver")
-# d.drawNote("E#5", "quaver")
-# d.drawNote("G4", "round")
-# d.drawNote("F#4", "black")
-# # d.drawNote("D4", "round")
-# # d.drawNote("F#4", "white")
-# # d.drawNote("B4", "quaver")
-# # d.drawNote("E#4", "semiquaver")
-# # d.drawNote("E4", "semiquaver")
-
-# # d.drawChord("C4", "round")
-
-# # d.drawChord("F4", "round")
-
-# # d.drawChord("C5", "black")
-# # d.drawChord("C4", "black")
-# # d.drawChord("D4", "black")
-# d.drawNote("F#4", "black")
-# d.drawNote("G#4", "round")
-# d.drawNote("C5", "round")
-
-# cv = turtle.getcanvas()
-# cv.postscript(file="file_name.ps", colormode='color')
-
-# turtle.done()
+d = Drawer(t, 1200, 400)

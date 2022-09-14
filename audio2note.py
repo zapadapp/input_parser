@@ -10,13 +10,9 @@ import tensorflow as tf
 import keras
 import sys
 import drawer
-<<<<<<< HEAD
 import librosa, librosa.display
 import matplotlib.pyplot as plt
 import time
-=======
-
->>>>>>> ecb50a0 (Add sharp to notes and fix compass weight)
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 WORKSPACE = os.path.dirname(FILE_PATH)
 
@@ -196,11 +192,7 @@ def detectAndPrintNote(s, q, drawer, scorePath, y, sr, samples, a, b, time):
             q.put(nota)
             s.append(note.Note(nota))
             #print(s.write('lily.png', fp=os.path.join("../front/tmp", scorePath)))
-<<<<<<< HEAD
             drawer.drawNote(nota,figure)
-=======
-            drawer.drawNote(nota,"black")
->>>>>>> ecb50a0 (Add sharp to notes and fix compass weight)
 
 def convertToNote(val) :
     print("nota: {}".format(val))
@@ -213,11 +205,7 @@ def convertToNote(val) :
 
     return nota
 
-<<<<<<< HEAD
 def processAudio(s, drawer, q, audioPath, scorePath, noteCO, timeCO):
-=======
-def processAudio(s, drawer, q, audioPath, scorePath):
->>>>>>> ecb50a0 (Add sharp to notes and fix compass weight)
     ############################################################
     ##############    Actual audio processing    ###############
     ############################################################
