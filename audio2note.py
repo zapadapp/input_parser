@@ -37,7 +37,7 @@ def filterLowSamples(samples):
     return np.delete(samples, indexes)
 
 
-def getNoteandInstrumentFromRNN(s, q, scorePath, y, sr, samples, a, b):
+def getNoteandInstrumentFromRNN(s, q, drawer, scorePath, y, sr, samples, a, b):
     
     instrument = INSTRUMENT[1]
     nota = "not recognize"
@@ -66,7 +66,9 @@ def getNoteandInstrumentFromRNN(s, q, scorePath, y, sr, samples, a, b):
             print("Note {}\n".format(nota))
             q.put(nota)
             s.append(note.Note(nota))
-            print(s.write('lily.png', fp=os.path.join("../front/tmp", scorePath)))    
+            # print(s.write('lily.png', fp=os.path.join("../front/tmp", scorePath)))   
+            drawer.drawNote(nota,"black")
+
     else:
         print("PLEASE INIT YOUR ZAPADAPP :D \n")
 
@@ -91,7 +93,7 @@ def isSound(signal,sr):
         # if we found an for a peak we print the note
     return False
 
-def detectAndPrintNote(s, q, scorePath, y, sr, samples, a, b):
+def detectAndPrintNote(s, q, drawer, scorePath, y, sr, samples, a, b):
     # limit the audio input from sample in index a to sample in index b, unless b is 999 which means that it is the end of the audio data
     if b == 999:
         data = y[samples[a]:]

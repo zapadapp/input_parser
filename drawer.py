@@ -11,20 +11,24 @@ class Drawer:
         self.drawnNotes = []
         self.drawnElements = []
         self.t = t
-        self.t.speed(0)
+        self.t.speed(2)
         #self.t.hideturtle()
         self.scoreX = 0
         self.scoreY = 0
         self.lowestY = 0
         self.compassWeight = 0
-        
+
+        #t.screensize(2000,2000)
+            
         x, y = self.t.position()
-        x = x - (width/2 - 10)
-        y = y + (height/2 - 50)
-        self.drawScore(x,y )
+        self.initScoreX = x - (width/2 - 10)
+        self.initScoreY = y + (height/2 - 50)
+        self.drawScore()
     
-    def drawScore(self, x, y):
-        self.goto(x, y)
+    def drawScore(self):
+        self.goto(self.initScoreX, self.initScoreY)
+        self.drawCompassTempo(self.initScoreX, self.initScoreY+10)
+        self.goto(self.initScoreX, self.initScoreY)
 
         for y in range(4):
             self.t.forward(1500)
@@ -37,6 +41,28 @@ class Drawer:
         self.t.backward(1500)
 
         self.scoreX, self.scoreY = self.t.position()
+
+    def drawCompassTempo(self, x, y):
+        self.goto(x, y)
+        self.t.width(2)
+        self.t.goto(x,y+10)
+        self.t.goto(x,y+5)
+        self.t.goto(x-5,y+5)
+        self.t.goto(x-5,y+10)
+
+        self.goto(x+5, y)
+        x, y = self.t.position()
+        self.t.goto(x+2, y+10)
+        self.t.goto(x, y)
+
+        self.goto(x+12, y)
+        x, y = self.t.position()
+        self.t.goto(x,y+10)
+        self.t.goto(x,y+5)
+        self.t.goto(x-5,y+5)
+        self.t.goto(x-5,y+10)
+
+        self.t.width(1)
 
     def drawNote(self, note, type):
         y = int(self.getNoteYPos(note))
@@ -382,6 +408,10 @@ class Drawer:
 
             aux = aux + 20
 
+    def clearScore(self):
+        self.t.clear()
+        self.drawScore()        
+
     def waiting(self):
         self.t.speed(1)
         self.t.hideturtle()
@@ -417,25 +447,25 @@ class Drawer:
 
 
 
-# screen = turtle.Screen()
-# screen.reset()
-# screen.setup(1200, 400)
+screen = turtle.Screen()
+screen.reset()
+screen.setup(1200, 400)
 
-# t = turtle.Turtle()
+t = turtle.Turtle()
 
-# d = Drawer(t, 1200, 400)
+d = Drawer(t, 1200, 400)
 
-# d.drawNote("E4", "quaver")
-# d.drawNote("F4", "round")
-# d.drawNote("A4", "quaver")
-# d.drawNote("A#4", "semiquaver")
-# d.drawNote("C4", "black")
-# d.drawNote("D4", "black")
-# d.drawNote("B#3", "round")
-# d.drawNote("B4", "quaver")
-# d.drawNote("E#5", "quaver")
-# d.drawNote("G4", "round")
-# d.drawNote("F#4", "black")
+d.drawNote("E4", "quaver")
+d.drawNote("F4", "round")
+d.drawNote("A4", "quaver")
+d.drawNote("A#4", "semiquaver")
+d.drawNote("C4", "black")
+d.drawNote("D4", "black")
+d.drawNote("B#3", "round")
+d.drawNote("B4", "quaver")
+d.drawNote("E#5", "quaver")
+d.drawNote("G4", "round")
+d.drawNote("F#4", "black")
 # d.drawNote("D4", "round")
 # d.drawNote("F#4", "white")
 # d.drawNote("B4", "quaver")
@@ -449,7 +479,6 @@ class Drawer:
 # d.drawChord("C5", "black")
 # d.drawChord("C4", "black")
 # d.drawChord("D4", "black")
-# d.drawNote("F#4", "black")
+d.drawNote("F#4", "black")
 
-
-# turtle.done()
+turtle.done()
