@@ -174,6 +174,7 @@ def processAudio(s,q, audioPath, scorePath):
             getNoteandInstrumentFromRNN(s,q,scorePath, y, sr, filteredSamples, j, 999)
 
 
+    
 def correctShape(mel_shape):
     return mel_shape == SHAPE
 
