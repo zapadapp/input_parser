@@ -20,11 +20,11 @@ sys.path.insert(0, os.path.join(WORKSPACE, "chord_cnn"))
 
 
 #Categories from version 04
-CATEGORIES = ["A","A-","B","B-","C", "C-","D", "D-","E","E-",
-              "F","F-","G","G-",
-              "A","A#","A#-","A-","B","B-","C","C#","C#-","C-",
-              "D","D#","D#-","D-","E","E-","F","F#","F#-","F-",
-              "G","G#","G#-","G-"]
+CATEGORIES = ["A","A-","A#","B","B-","C", "C-","C#","D","D-","D#","D#-","E","E-",
+              "F","F-","F#","F#-","G","G-","G#","G#-",
+              "A","A-","A#","A#-","B","B-","C","C-","C#","C#-",
+              "D","D-","D#","D#-","E","E-","F","F-","F#","F#-",
+              "G","G-","G#","G#-"]
 
 INSTRUMENT = ["Guitar","Piano"]
 chord_model = keras.models.load_model('../chord_cnn/modelo-acordes-v05.h5')
@@ -85,8 +85,12 @@ def getOctaveAndSoundFromChord(signal, sample_rate):
             octava = nota[1]
             if octava == "#":
                 octava = nota[2]
+<<<<<<< HEAD
+            return 4, True
+=======
             return int(octava), True
 
+>>>>>>> 828ff020557b7213a3d6c3841c522e091408e983
     return -1, False 
 
 def getChroma(signal,sample_rate):
@@ -182,7 +186,7 @@ def processAudio(s,q, audioPath, scorePath):
   
     y, sr = librosa.load(audioPath)
    
-    onset_frames = librosa.onset.onset_detect(y, sr=sr, wait=1, pre_avg=1, post_avg=1, pre_max=1, post_max=1)
+    onset_frames = librosa.onset.onset_detect(y, sr=sr, wait=30, pre_avg=30, post_avg=30, pre_max=30, post_max=30)
     samples = librosa.frames_to_samples(onset_frames)
     # filter lower samples
     filteredSamples = filterLowSamples(samples)
