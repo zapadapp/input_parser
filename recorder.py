@@ -57,15 +57,16 @@ class Recorder:
             waveFile.close()
 
             if detect == 'note':
-                processThread = Thread(target = audio2note.processAudio, args =(self.noteStream,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
-                processThread.start()
+                self.processThread = Thread(target = audio2note.processAudio, args =(self.noteStream,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
+                self.processThread.start()
             else:
-                processThread = Thread(target = audio2chord.processAudio, args =(self.noteStream,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
-                processThread.start()
+                self.processThread = Thread(target = audio2chord.processAudio, args =(self.noteStream,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
+                self.processThread.start()
         ##CUANDO SE STOPEA, ESPERO QUE TERMINEN LOS THREADS DE TRABAJAR
-        processThread.join()
+        self.processThread.join()
 
     def stop(self):
+        self.processThread.is_alive = False
         self.recording = False
         ## SE AGREGA SLEEP PARA ESPERAR QUE LOS THREADS TERMINEN SU TRABAJO 
         time.sleep(2)
