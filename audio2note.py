@@ -37,7 +37,7 @@ def filterLowSamples(samples):
     return np.delete(samples, indexes)
 
 
-def getNoteandInstrumentFromRNN(s, q, drawer, scorePath, y, sr, samples, a, b):
+def getNoteAndInstrumentFromRNN(s, q, drawer, scorePath, y, sr, samples, a, b):
     
     instrument = INSTRUMENT[1]
     nota = "not recognize"
@@ -177,9 +177,9 @@ def processAudio(s, drawer, q, audioPath, scorePath):
         j = i
         
         if j < length-1:
-            getNoteandInstrumentFromRNN(s,q,scorePath, y, sr, filteredSamples, j, j+1)
+            getNoteAndInstrumentFromRNN(s,q,drawer,scorePath, y, sr, filteredSamples, j, j+1)
         elif j == length-1:
-            getNoteandInstrumentFromRNN(s,q,scorePath, y, sr, filteredSamples, j, 999)
+            getNoteAndInstrumentFromRNN(s,q,drawer,scorePath, y, sr, filteredSamples, j, 999)
 
 
     

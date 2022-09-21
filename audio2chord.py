@@ -85,12 +85,8 @@ def getOctaveAndSoundFromChord(signal, sample_rate):
             octava = nota[1]
             if octava == "#":
                 octava = nota[2]
-<<<<<<< HEAD
-            return 4, True
-=======
             return int(octava), True
 
->>>>>>> 828ff020557b7213a3d6c3841c522e091408e983
     return -1, False 
 
 def getChroma(signal,sample_rate):
