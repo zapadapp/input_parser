@@ -69,9 +69,6 @@ def getNoteAndInstrumentFromRNN(s, q, drawer, scorePath, y, sr, samples, a, b):
             # print(s.write('lily.png', fp=os.path.join("../front/tmp", scorePath)))   
             drawer.drawNote(nota,"black")
 
-    else:
-        print("PLEASE INIT YOUR ZAPADAPP :D \n")
-
     return instrument, nota
 
 def isSound(signal,sr):

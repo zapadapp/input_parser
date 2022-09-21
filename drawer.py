@@ -13,24 +13,22 @@ class Drawer:
         self.drawnElements = []
         self.t = t
         self.t.speed(0)
-        #self.t.hideturtle()
+        self.t.hideturtle()
         self.scoreX = 0
         self.scoreY = 0
         self.lowestY = 0
         self.compassWeight = 0
         self.maxCompasses = 4
         self.compassSplits = 0
-
-        #t.screensize(2000,2000)
             
         x, y = self.t.position()
         self.initScoreX = x - (width/2 - 10)
         self.initScoreY = y + (height/2 - 50)
-        self.drawCompassTempo(self.initScoreX, self.initScoreY+10)
 
         self.drawScore()
     
     def drawScore(self):
+        self.drawCompassTempo(self.initScoreX, self.initScoreY+10)
         self.goto(self.initScoreX, self.initScoreY)
 
         for y in range(4):

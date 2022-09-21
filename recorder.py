@@ -75,6 +75,9 @@ class Recorder:
     def reproduce(self):
         self.noteStream.show("midi")   
        
+    def saveScore(self, path):
+        self.noteStream.write('lily.png', fp=path)
+
 
     def close(self):     
         self.stream.close()
