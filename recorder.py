@@ -22,7 +22,7 @@ class Recorder:
         self.CHANNELS = 1
         self.RATE = 22050
         self.CHUNK = 1024
-        self.RECORD_SECONDS = 2
+        self.RECORD_SECONDS = 1
         self.WAVE_OUTPUT_FILENAME = outputFile
         self.SCORE_PATH = scoreFile
         self.recording = False
@@ -83,7 +83,7 @@ class Recorder:
                 self.processThread = Thread(target = audio2note.processAudio, args =(self.noteStream,drawer,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
                 self.processThread.start()
             else:
-                self.processThread = Thread(target = audio2chord.processAudio, args =(self.noteStream,drawer, note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
+                self.processThread = Thread(target = audio2chord.processAudio, args =(self.noteStream, note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
                 self.processThread.start()
 >>>>>>> ecb50a0 (Add sharp to notes and fix compass weight)
         ##CUANDO SE STOPEA, ESPERO QUE TERMINEN LOS THREADS DE TRABAJAR
