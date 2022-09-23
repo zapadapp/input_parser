@@ -15,7 +15,7 @@ WORKSPACE = os.path.dirname(FILE_PATH)
 
 sys.path.insert(0, os.path.join(WORKSPACE, "note"))
 
-MY_MODEL = keras.models.load_model('../notes/modelo-notas-v01.h5')
+MY_MODEL = keras.models.load_model('../notes/modelo-notas-v02.h5')
 
 CATEGORIES = ["A#2","A#3","A#4","A2","A3","A4","B2","B3","B4","C#3","C#4","C#5",
                "C3","C4","C5","D#3","D#4","D#5","D3","D4","D5","E2","E3","E4",
