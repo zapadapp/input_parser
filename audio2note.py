@@ -18,10 +18,11 @@ sys.path.insert(0, os.path.join(WORKSPACE, "note"))
 MY_MODEL = keras.models.load_model('../notes/modelo-notas-v01.h5')
 
 CATEGORIES = ["A#2","A#3","A#4","A2","A3","A4","B2","B3","B4","C#3","C#4","C#5",
- 			   "C3","C4","C5","D#3","D#4","D#5","D3","D4","D5","E2","E3","E4",
- 			   "F#2","F#3","F#4","F2","F3","F4", "G#2","G#3","G#4","G2","G3","G4",
-               "A#4","A3","A4","A5","B3","B4","B5","C#4","C3","C4","C5","D#4","D3","D4","D5",
-               "E3","E4","E5","F#4","F3","F4","F5","G#4","G3","G4","G5",]
+               "C3","C4","C5","D#3","D#4","D#5","D3","D4","D5","E2","E3","E4",
+               "F#2","F#3","F#4","F2","F3","F4", "G#2","G#3","G#4","G2","G3","G4",
+               "A#3","A#4","A#5","A3","A4","A5","B3","B4","B5","C#3","C#4","C#5",
+               "C3","C4","C5","D#3","D#4","D#5","D3","D4","D5","E3","E4","E5",
+               "F#3","F#4","F#5","F3","F4","F5","G#3","G#4","G#5","G3","G4","G5"]
 
 INSTRUMENT = ["Guitar","Piano"]
 NFFT = 512
@@ -147,8 +148,7 @@ def processAudio(s, drawer, q, audioPath, scorePath):
     
     y, sr = librosa.load(audioPath)
 
-
-    onset_frames = librosa.onset.onset_detect(y, sr=sr, wait=1, pre_avg=1, post_avg=1, pre_max=1, post_max=1)
+    onset_frames = librosa.onset.onset_detect(y, sr=sr, wait=5, pre_avg=5, post_avg=5, pre_max=5, post_max=5)
 
     # convert frames to samples
     samples = librosa.frames_to_samples(onset_frames)
@@ -174,9 +174,9 @@ def processAudio(s, drawer, q, audioPath, scorePath):
         j = i
         
         if j < length-1:
-            getNoteAndInstrumentFromRNN(s,q,drawer,scorePath, y, sr, filteredSamples, j, j+1)
+            detectAndPrintNote(s,q,drawer,scorePath, y, sr, filteredSamples, j, j+1)
         elif j == length-1:
-            getNoteAndInstrumentFromRNN(s,q,drawer,scorePath, y, sr, filteredSamples, j, 999)
+            detectAndPrintNote(s,q,drawer,scorePath, y, sr, filteredSamples, j, 999)
 
 
     
