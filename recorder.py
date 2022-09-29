@@ -9,9 +9,8 @@ import time
 import os, sys
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, FILE_PATH)
-import audio2note
-import audio2chord
-    
+import processAudio
+
 simplefilter(action='ignore', category=FutureWarning)
 
 class Recorder:
@@ -29,17 +28,21 @@ class Recorder:
 
     def setup(self, deviceChoice):
         self.audio = pyaudio.PyAudio()
+        self.deviceChoice = deviceChoice
 
-        self.stream = self.audio.open(format=self.FORMAT, channels=self.CHANNELS,
-                rate=self.RATE, input=True,
-                frames_per_buffer=self.CHUNK, input_device_index=deviceChoice)
-
-    def record(self, note_q, detect):  
+    def record(self, note_q, detect, drawer):  
         if self.recording == True :
-            print("Pase Por aqui")
+            print("Already recording")
             return  
         self.recording = True
         self.noteStream = m21stream.Stream()
+
+        self.stream = self.audio.open(format=self.FORMAT, channels=self.CHANNELS,
+                        rate=self.RATE, input=True,
+                        frames_per_buffer=self.CHUNK, input_device_index=self.deviceChoice)
+
+        noteCO = ""
+        timeCO = 0
 
         while self.recording == True:
             frames = []
@@ -56,25 +59,31 @@ class Recorder:
             waveFile.writeframes(b''.join(frames))
             waveFile.close()
 
-            if detect == 'note':
-                self.processThread = Thread(target = audio2note.processAudio, args =(self.noteStream,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
-                self.processThread.start()
-            else:
-                self.processThread = Thread(target = audio2chord.processAudio, args =(self.noteStream,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
-                self.processThread.start()
+                #self.processThread = Thread(target = audio2note.processAudio, args =(self.noteStream,drawer,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
+                #self.processThread.start()
+            noteCO, timeCO = processAudio.processAudio(self.noteStream,drawer,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH, noteCO, timeCO,"note")
+            print("process audio returns === note: {}, time: {}".format(noteCO, timeCO))
+            #else:
+                # self.processThread = Thread(target = audio2chord.processAudio, args =(self.noteStream, note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
+                # self.processThread.start()
+                # noteCO, timeCO = audio2chord.processAudio(self.noteStream, note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH)
+
         ##CUANDO SE STOPEA, ESPERO QUE TERMINEN LOS THREADS DE TRABAJAR
-        self.processThread.join()
+        #self.processThread.join()
 
     def stop(self):
-        self.processThread.is_alive = False
+        #self.processThread.is_alive = False
         self.recording = False
         ## SE AGREGA SLEEP PARA ESPERAR QUE LOS THREADS TERMINEN SU TRABAJO 
-        time.sleep(2)
+        time.sleep(0.5)
         self.stream.stop_stream()
 
     def reproduce(self):
         self.noteStream.show("midi")   
        
+    def saveScore(self, path):
+        self.noteStream.write('lily.png', fp=path)
+
 
     def close(self):     
         self.stream.close()
