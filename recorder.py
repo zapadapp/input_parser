@@ -21,7 +21,7 @@ class Recorder:
         self.CHANNELS = 1
         self.RATE = 22050
         self.CHUNK = 1024
-        self.RECORD_SECONDS = 5
+        self.RECORD_SECONDS = 2
         self.WAVE_OUTPUT_FILENAME = outputFile
         self.SCORE_PATH = scoreFile
         self.recording = False
