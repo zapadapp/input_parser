@@ -1,3 +1,4 @@
+from json import detect_encoding
 import os
 import librosa
 import numpy as np
@@ -9,17 +10,19 @@ import tensorflow as tf
 import keras
 import sys
 import drawer
-
+import librosa, librosa.display
+import matplotlib.pyplot as plt
+import time
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 WORKSPACE = os.path.dirname(FILE_PATH)
 
 sys.path.insert(0, os.path.join(WORKSPACE, "note"))
 
-MY_MODEL = keras.models.load_model('../notes/modelo-notas-v02.h5')
+MY_MODEL = keras.models.load_model('../notes/modelo-notas-v03.h5')
 
 CATEGORIES = ["A#2","A#3","A#4","A2","A3","A4","B2","B3","B4","C#3","C#4","C#5",
-               "C3","C4","C5","D#3","D#4","D#5","D3","D4","D5","E2","E3","E4",
-               "F#2","F#3","F#4","F2","F3","F4", "G#2","G#3","G#4","G2","G3","G4",
+ 			   "C3","C4","C5","D#3","D#4","D#5","D3","D4","D5","E2","E3","E4",
+ 			   "F#2","F#3","F#4","F2","F3","F4", "G#2","G#3","G#4","G2","G3","G4",
                "A#3","A#4","A#5","A3","A4","A5","B3","B4","B5","C#3","C#4","C#5",
                "C3","C4","C5","D#3","D#4","D#5","D3","D4","D5","E3","E4","E5",
                "F#3","F#4","F#5","F3","F4","F5","G#3","G#4","G#5","G3","G4","G5"]
@@ -40,13 +43,14 @@ def filterLowSamples(samples):
 
 
 def getNoteAndInstrumentFromRNN(s, q, drawer, scorePath, y, sr, samples, a, b, time):
-    
     instrument = INSTRUMENT[1]
-    nota = "not recognize"
-    duration = 1.0
+    nota = ""
+    graph = True
+
     if b == 999:
         data = y[samples[a]:]
-        duration = time[len(time)-1] - time[a]
+        duration = 2 - time[a] # esto esta mal, time[len(time)-1] tendria que ser el self.RECORD_SECONDS de recorder (2)
+        graph = False
     else:    
         data = y[samples[a]:samples[b]]
         """print("a: {}".format(a))
@@ -54,6 +58,12 @@ def getNoteAndInstrumentFromRNN(s, q, drawer, scorePath, y, sr, samples, a, b, t
         print("duration {}".format(duration))
         print("time {}".format(time)) """
         duration = time[b] - time[a]
+
+    figure = getFigure2(duration)
+    print("a: {}".format(a))
+    print("b {}".format(b))
+    print("duration {}".format(duration))
+    print("figure {}".format(figure))
     
     if isSound(data,sr):
         mel_spec = librosa.feature.melspectrogram(y=data, sr=sr, n_mels=N_MELS,fmin=100, fmax= 650) 
@@ -69,22 +79,24 @@ def getNoteAndInstrumentFromRNN(s, q, drawer, scorePath, y, sr, samples, a, b, t
             if index < 36 :
                 instrument = INSTRUMENT[0]
 
-        if note != "not recognize":
+        if note != "":
             #nota = convertToNote(str(librosa.hz_to_note(f[peak_i[0]])))
-            figure = getFigure(duration)            
             print("Instrument {}\n".format( instrument))
             print("Note {}\n".format(nota))
             print("duration {}".format(duration))
             print("time {}".format(time)) 
             q.put(nota)
             s.append(note.Note(nota))
-            # print(s.write('lily.png', fp=os.path.join("../front/tmp", scorePath)))   
-            drawer.drawNote(nota,getFigure(duration))
+            # print(s.write('lily.png', fp=os.path.join("../front/tmp", scorePath)))  
+            print("graph: {}".format(graph)) 
+            if graph:
+                drawer.drawNote(nota, figure)
 
+    # Aca tendriamos que dibujar un silencio por el duration que calculamos
     return instrument, nota
 
 def getFigure(time):
-    vector_figure = ["round","quaver","black","white","round"]
+    vector_figure = ["semiquaver","quaver","black","white","round"]
     i = 0
     figure_time = 0.25 ##Arranca en semi-corchea
     min_duration = 4.0
@@ -99,7 +111,25 @@ def getFigure(time):
     return figure ## Negra por default """
     #0 < time < 0.35 -> semi-corchea
 
+def getFigure2(time):
+    if 0.15<time<0.35:
+        return "semiquaver"
+
+    if 0.35 <=time<0.80:
+        return "quaver"
+
+    if 0.80 <=time<1.50:
+        return "black"
+
+    #if 1.50 <=time<2:
+    #    return "white"       
+
+    #return "blank"
+    return "white"
+            
+
 def isSound(signal,sr):
+    print("signal: {}".format(signal))
     X = fft(signal)
     X_mag = np.absolute(X)
 
@@ -118,12 +148,21 @@ def isSound(signal,sr):
         # if we found an for a peak we print the note
     return False
 
-def detectAndPrintNote(s, q, drawer, scorePath, y, sr, samples, a, b):
+def detectAndPrintNote(s, q, drawer, scorePath, y, sr, samples, a, b, time):
     # limit the audio input from sample in index a to sample in index b, unless b is 999 which means that it is the end of the audio data
     if b == 999:
         data = y[samples[a]:]
+        duration = 2 - time[a]
     else:    
         data = y[samples[a]:samples[b]]
+        duration = time[b] - time[a]
+
+    figure = getFigure2(duration)
+    print("a: {}".format(a))
+    print("b {}".format(b))
+    print("duration {}".format(duration))
+    print("figure {}".format(figure))
+        
     
     # return fast in case there is nothing to process
     if len(data) == 0:
@@ -153,7 +192,7 @@ def detectAndPrintNote(s, q, drawer, scorePath, y, sr, samples, a, b):
             q.put(nota)
             s.append(note.Note(nota))
             #print(s.write('lily.png', fp=os.path.join("../front/tmp", scorePath)))
-            drawer.drawNote(nota,"black")
+            drawer.drawNote(nota,figure)
 
 def convertToNote(val) :
     print("nota: {}".format(val))
@@ -166,53 +205,94 @@ def convertToNote(val) :
 
     return nota
 
-def processAudio(s, drawer, q, audioPath, scorePath):
+def processAudio(s, drawer, q, audioPath, scorePath, noteCO, timeCO):
     ############################################################
     ##############    Actual audio processing    ###############
     ############################################################
 
-    # Note: we should be doing this in another thread so that we do not have to wait for this to finish to record another wave file.
-    
+    print("process audio input === note: {}, time: {}".format(noteCO, timeCO))
+
     y, sr = librosa.load(audioPath)
 
-
-    // onset_frames = librosa.onset.onset_detect(y, sr=sr, wait=10, pre_avg=10, post_avg=10, pre_max=10, post_max=10)
-
-    onset_time = librosa.onset.onset_detect(y, sr=sr, units='time',wait=10, pre_avg=10, post_avg=10, pre_max=10, post_max=10)
-
-    print("onset {}".format(onset_time))
-
-    # convert frames to samples
-    samples = librosa.frames_to_samples(onset_frames)
-
-
-    # filter lower samples
-    filteredSamples = filterLowSamples(samples)
-
-    # get indexes of all samples in the numpy array
-    indexes = np.where(filteredSamples>0)
-
-    vector_time = librosa.samples_to_time(samples,sr=sr)
-
-    length = len(indexes[0])
-    j = 0
-
-    
-    print("len samples {}".format(length))
-    # iterate over all indexes of the onsets. What we do here is group indexes by two, so that we have the beginning and ending of 
-    # the audio sample that we will use to get the note from.
-    # For example, if we have 4 onsets (indexes 0 to 3) we use these segments:
-    # 0 to 1
-    # 1 to 2
-    # 2 to 3
-    # Next step: we should also use whatever piece of audio before the first index and after the last one.
-    for i in indexes[0]:
-        j = i
+    iss = isSound(y,sr)
+    print("is sound: {}".format(iss))
+    if iss:
+        duration = librosa.get_duration(y=y, sr= sr)
+        print("duration {}".format(duration))
         
-        if j < length-1:
-            getNoteAndInstrumentFromRNN(s,q,drawer,scorePath, y, sr, filteredSamples, j, j+1,vector_time)
-        elif j == length-1:
-            getNoteAndInstrumentFromRNN(s,q,drawer,scorePath, y, sr, filteredSamples, j, 999,vector_time)
+        ONSET_PARAM = 20
+        tempo, beats = librosa.beat.beat_track(y=y, sr=sr)
+        velocity_audio = 60*len(beats)/2
+        if velocity_audio > 40 and velocity_audio <= 80 :
+            ONSET_PARAM = 10
+        elif velocity_audio > 80 and velocity_audio <= 100:
+            ONSET_PARAM = 7
+        elif velocity_audio > 100:
+            ONSET_PARAM = 5
+
+        onset_env = librosa.onset.onset_strength(y=y, sr=sr, max_size=5)
+        onset_frames = librosa.onset.onset_detect(onset_envelope=onset_env,backtrack=True, normalize =True,wait=ONSET_PARAM, pre_avg=ONSET_PARAM, post_avg=ONSET_PARAM, pre_max=ONSET_PARAM, post_max=ONSET_PARAM)
+ 
+        print("frames {}".format(onset_frames))
+
+        onset_times = librosa.frames_to_time(onset_frames)
+        print("times {}".format(onset_times))
+
+        # convert frames to samples
+        samples = librosa.frames_to_samples(onset_frames)
+
+        # filter lower samples
+        filteredSamples = filterLowSamples(samples)
+
+        # get indexes of all samples in the numpy array
+        indexes = np.where(filteredSamples>0)
+
+        print("indexes: {}".format(indexes))
+
+        length = len(indexes[0])
+        j = 0
+
+        # plt.figure(figsize=(14, 5))
+        # librosa.display.waveshow(y, sr=sr)
+        # plt.vlines(onset_times, -0.8, 0.79, color='r', alpha=0.8) 
+
+        # plt.show()
+
+        # time.sleep(50)
+
+        if noteCO != "" and timeCO != 0 and len(onset_times)>0 and len(indexes)>0:
+            duration = timeCO + onset_times[0]
+            fig = getFigure2(duration)
+            drawer.drawNote(noteCO, fig)
+            print("drawer input === note: {}, figure: {}, time: {}".format(noteCO, fig, duration))
+
+
+        print("len samples {}".format(length))
+        # iterate over all indexes of the onsets. What we do here is group indexes by two, so that we have the beginning and ending of 
+        # the audio sample that we will use to get the note from.
+        # For example, if we have 4 onsets (indexes 0 to 3) we use these segments:
+        # 0 to 1
+        # 1 to 2
+        # 2 to 3
+        # Next step: we should also use whatever piece of audio before the first index and after the last one.
+        for i in indexes[0]:
+            j = i
+            
+            if j < length-1:
+                getNoteAndInstrumentFromRNN(s,q,drawer,scorePath, y, sr, filteredSamples, j, j+1,onset_times)
+                # detectAndPrintNote(s,q,drawer,scorePath, y, sr, filteredSamples, j, j+1,onset_times)
+            elif j == length-1:
+                _, noteCO = getNoteAndInstrumentFromRNN(s,q,drawer,scorePath, y, sr, filteredSamples, j, 999,onset_times)
+                # detectAndPrintNote(s,q,drawer,scorePath, y, sr, filteredSamples, j, 999,onset_times)
+
+        return noteCO, 2-onset_times[len(onset_times)-1]        
+    else:
+        if noteCO == "":
+            drawer.drawNote("blank", "white")      
+        else:
+            fig = getFigure2(2+timeCO)
+            drawer.drawNote(noteCO, fig)
+        return "", 0
 
 
     

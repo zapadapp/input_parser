@@ -74,6 +74,27 @@ class Drawer:
         self.t.width(1)
 
     def drawNote(self, note, type):
+        if note == "blank":
+            times = 2
+            match type:
+                case "round":
+                    times = 4
+                case "white":
+                    times = 2
+                case "black":
+                    times = 1
+                case "quaver":
+                    times = 0.5
+                case "semiquaver":
+                    times = 0.25
+
+            self.compassWeight = self.compassWeight + times
+            if times >= 1:
+                for t in range(times):
+                    self.drawnElements.append("blank")
+                    self.gotoBase()
+                    self.drawSplitLine()
+
         y = int(self.getNoteYPos(note))
         if y == -1:
             print("invalid note")
@@ -423,6 +444,14 @@ class Drawer:
 
     def clearScore(self):
         self.t.clear()
+        self.drawnNotes = []
+        self.drawnElements = []
+        self.scoreX = 0
+        self.scoreY = 0
+        self.lowestY = 0
+        self.compassWeight = 0
+        self.maxCompasses = 4
+        self.compassSplits = 0
         self.drawScore()        
 
     def waiting(self):
