@@ -61,7 +61,7 @@ class Recorder:
 
                 #self.processThread = Thread(target = audio2note.processAudio, args =(self.noteStream,drawer,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
                 #self.processThread.start()
-            noteCO, timeCO = processAudio.processAudio(self.noteStream,drawer,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH, noteCO, timeCO,"note")
+            noteCO, timeCO = processAudio.processAudio(self.noteStream,drawer,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH, noteCO, timeCO,detect)
             print("process audio returns === note: {}, time: {}".format(noteCO, timeCO))
             #else:
                 # self.processThread = Thread(target = audio2chord.processAudio, args =(self.noteStream, note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
