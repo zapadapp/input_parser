@@ -5,6 +5,7 @@ from warnings import simplefilter
 from threading import Thread
 from music21 import stream as m21stream
 import time
+import music21
 # solve local imports
 import os, sys
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -25,6 +26,7 @@ class Recorder:
         self.WAVE_OUTPUT_FILENAME = outputFile
         self.SCORE_PATH = scoreFile
         self.recording = False
+        self.scoreFile = scoreFile
 
     def setup(self, deviceChoice):
         self.audio = pyaudio.PyAudio()
@@ -36,7 +38,7 @@ class Recorder:
             return  
         self.recording = True
         self.noteStream = m21stream.Stream()
-
+        
         self.stream = self.audio.open(format=self.FORMAT, channels=self.CHANNELS,
                         rate=self.RATE, input=True,
                         frames_per_buffer=self.CHUNK, input_device_index=self.deviceChoice)
@@ -48,8 +50,8 @@ class Recorder:
             frames = []
             print("recording...")
             for i in range(0, int(self.RATE / self.CHUNK * self.RECORD_SECONDS)):
-                data = self.stream.read(self.CHUNK,exception_on_overflow=False)
-                frames.append(data)
+                data = self.stream.read(self.CHUNK,exception_on_overflow=False) 
+                frames.append(data)  
             print("finished recording")
 
             waveFile = wave.open(self.WAVE_OUTPUT_FILENAME, 'wb')
@@ -72,14 +74,18 @@ class Recorder:
         #self.processThread.join()
 
     def stop(self):
-        #self.processThread.is_alive = False
         self.recording = False
-        ## SE AGREGA SLEEP PARA ESPERAR QUE LOS THREADS TERMINEN SU TRABAJO 
+        ## Small sleep to let recorder finish creating the file if necessary before cloging the stream
         time.sleep(0.5)
         self.stream.stop_stream()
 
     def reproduce(self):
-        self.noteStream.show("midi")   
+        fp = self.noteStream.write('midi', fp=os.path.join('files',self.scoreFile+'.mid'))
+        fctr = 2 
+        score = music21.converter.Converter()
+        score.parseFile(fp)
+        newscore = score.stream.augmentOrDiminish(fctr)
+        newscore.show('midi') 
        
     def saveScore(self, path):
         self.noteStream.write('lily.png', fp=path)
