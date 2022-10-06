@@ -2,18 +2,23 @@ import turtle
 import sys
 import os
 import time
+from threading import Thread
 
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, FILE_PATH)
 import audio2chord
 
 class Drawer:
-    def __init__(self, t, width, height):
+    def __init__(self, t, t2, width, height):
         self.drawnNotes = []
         self.drawnElements = []
         self.t = t
+        self.t2 = t2
         self.t.speed(0)
         self.t.hideturtle()
+        self.t2.speed(0)
+        self.t2.hideturtle()
+        
         self.scoreX = 0
         self.scoreY = 0
         self.lowestY = 0
@@ -42,12 +47,38 @@ class Drawer:
         self.t.backward(1500)
 
         self.scoreX, self.scoreY = self.t.position()
+        print("x: {}, y: {}".format(self.scoreX, self.scoreY))
+        Thread(target = self.drawKey, args =(), daemon=True).start()
+
+    def drawKey(self):
+        positions2 = [[-1.0,-5.0],[-1.0,-5.0],[-2.0,-3.0],[-2.0,-3.0],[-3.0,1.0],[-3.0,1.0],[-4.0,4.0],[-4.0,4.0],[-4.0,7.0],[-4.0,7.0],[-2.0,9.0],[-2.0,9.0],[-1.0,10.0],[-1.0,10.0],[0.0,10.0],[0.0,10.0],[2.0,6.0],[2.0,6.0],[5.0,3.0],[5.0,3.0],[6.0,-2.0],[6.0,-2.0],[6.0,-7.0],[6.0,-7.0],[3.0,-12.0],[3.0,-12.0],[-3.0,-14.0],[-3.0,-14.0],[-8.0,-14.0],[-8.0,-14.0],[-12.0,-13.0],[-12.0,-13.0],[-17.0,-9.0],[-17.0,-9.0],[-18.0,-7.0],[-18.0,-7.0],[-19.0,-5.0],[-19.0,-5.0],[-19.0,-3.0],[-19.0,-3.0],[-18.0,2.0],[-18.0,2.0],[-11.0,9.0],[-11.0,9.0],[0.0,17.0],[0.0,17.0],[9.0,26.0],[9.0,26.0],[12.0,35.0],[12.0,35.0],[12.0,43.0],[12.0,43.0],[10.0,51.0],[10.0,51.0],[7.0,57.0],[7.0,57.0],[5.0,58.0],[5.0,58.0],[3.0,58.0],[3.0,58.0],[-2.0,56.0],[-2.0,56.0],[-7.0,48.0],[-7.0,48.0],[-9.0,37.0],[-9.0,37.0],[-7.0,20.0],[-7.0,20.0],[-1.0,-0.0],[-1.0,-0.0],[-1.0,-15.0],[-1.0,-15.0],[-2.0,-23.0],[-2.0,-23.0],[-4.0,-29.0],[-4.0,-29.0],[-6.0,-32.0],[-6.0,-32.0],[-7.0,-32.0],[-7.0,-32.0],[-8.0,-32.0],[-8.0,-32.0],[-11.0,-31.0],[-11.0,-31.0],[-15.0,-29.0],[-15.0,-29.0]]
+
+        self.t2.up()
+        self.t2.goto(self.scoreX, self.scoreY)
+        self.t2.setheading(0)
+        self.t2.fd(25)
+        self.scoreX, self.scoreY = self.t2.position()
+
+        self.t2.left(90)
+        self.t2.fd(20)
+        x, y = self.t2.position()
+
+        self.t2.width(3)
+        self.t2.pendown()
+        for i in range(len(positions2)):
+            self.t2.goto(x+positions2[i][0], y+positions2[i][1])
+        self.t2.width(1)
+        self.t2.up()
+        self.t2.goto(self.scoreX, self.scoreY)
+        self.t2.setheading(0)
+        self.t2.down()  
 
     def splitScore(self):
         self.compassSplits = 0
         self.drawnElements = []
         self.gotoBase()
-        self.initScoreX, y = self.t.position()
+        x, y = self.t.position()
+        self.initScoreX = x - 25 # remove indentation
         self.initScoreY = y - 80
         self.drawScore()
 
@@ -412,6 +443,13 @@ class Drawer:
                 self.splitScore()
 
 
+            leftover = self.compassWeight%4
+            self.compassWeight = leftover
+
+            if self.compassSplits == self.maxCompasses:
+                self.splitScore()
+
+
     def drawExtraLines(self, x, y):
         if y < self.scoreY - 10 :
             self.drawBottomLines(x, y)
@@ -497,39 +535,3 @@ class Drawer:
 # screen.reset()
 # screen.setup(1200, 400)
 
-# t = turtle.Turtle()
-
-# d = Drawer(t, 1200, 400)
-
-# d.drawNote("E4", "quaver")
-# d.drawNote("F4", "round")
-# d.drawNote("A4", "quaver")
-# d.drawNote("A#4", "semiquaver")
-# d.drawNote("C4", "black")
-# d.drawNote("D4", "black")
-# d.drawNote("B#3", "round")
-# d.drawNote("B4", "quaver")
-# d.drawNote("E#5", "quaver")
-# d.drawNote("G4", "round")
-# d.drawNote("F#4", "black")
-# # d.drawNote("D4", "round")
-# # d.drawNote("F#4", "white")
-# # d.drawNote("B4", "quaver")
-# # d.drawNote("E#4", "semiquaver")
-# # d.drawNote("E4", "semiquaver")
-
-# # d.drawChord("C4", "round")
-
-# # d.drawChord("F4", "round")
-
-# # d.drawChord("C5", "black")
-# # d.drawChord("C4", "black")
-# # d.drawChord("D4", "black")
-# d.drawNote("F#4", "black")
-# d.drawNote("G#4", "round")
-# d.drawNote("C5", "round")
-
-# cv = turtle.getcanvas()
-# cv.postscript(file="file_name.ps", colormode='color')
-
-# turtle.done()
