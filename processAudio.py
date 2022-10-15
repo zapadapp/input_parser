@@ -5,6 +5,7 @@ import librosa.display
 from scipy.signal import find_peaks
 from scipy.fft import fft
 from music21 import note
+from music21 import chord as c21
 from music21 import duration as d21
 import tensorflow as tf
 import keras
@@ -147,9 +148,10 @@ def detectAndPrintNote(s, q, drawer, scorePath, y, sr, samples, a, b):
             nota = convertToNote(str(librosa.hz_to_note(f[peak_i[0]])))
             print("Detected note: {}".format(nota))
             q.put(NOTE_TRANSLATION_MAP[nota])
-            s.append(note.Note(nota))
+            #s.append(note.Note(nota))
             #print(s.write('lily.png', fp=os.path.join("../front/tmp", scorePath)))
             drawer.drawNote(nota,"black")
+            return nota
 
 def convertToNote(val) :
     print("nota: {}".format(val))
@@ -173,11 +175,11 @@ def processAudio(s, drawer, q, audioPath, scorePath,lastNote, lastDuration,detec
         tempo, beats = librosa.beat.beat_track(y=y, sr=sr)
         velocity_audio = 60*len(beats)/2
         if velocity_audio > 40 and velocity_audio <= 80 :
-            ONSET_PARAM = 10
+            ONSET_PARAM = 17
         elif velocity_audio > 80 and velocity_audio <= 100:
-            ONSET_PARAM = 7
+            ONSET_PARAM = 12
         elif velocity_audio > 100:
-            ONSET_PARAM = 5
+            ONSET_PARAM = 7
        
         onset_env = librosa.onset.onset_strength(y=y, sr=sr, max_size=5)
         onset_frames = librosa.onset.onset_detect(onset_envelope=onset_env,backtrack=True, normalize =True,wait=ONSET_PARAM, pre_avg=ONSET_PARAM, post_avg=ONSET_PARAM, pre_max=ONSET_PARAM, post_max=ONSET_PARAM)
@@ -199,6 +201,10 @@ def processAudio(s, drawer, q, audioPath, scorePath,lastNote, lastDuration,detec
                 s.append(m21Note)
             elif detected == "chord":
                 drawer.drawChord(lastNote,getFigure(lastDuration + onset_times[0]))
+                triada = getNotesFromChords(getBaseNote(lastNote),4)
+                m21Chord = c21.Chord(triada)
+                m21Chord.duration = d21.Duration(getFigureDuration(getFigure(lastDuration + onset_times[0])))
+                s.append(m21Chord)
 
 
         length = len(indexes[0])
@@ -208,6 +214,7 @@ def processAudio(s, drawer, q, audioPath, scorePath,lastNote, lastDuration,detec
                 j = i
                 
                 if j < length-1:
+                    #nota = detectAndPrintNote(s,q,drawer,scorePath, y, sr, filteredSamples, j, j+1)
                     _ , nota = getNoteAndInstrumentFromRNN(s,q,scorePath, y, sr, filteredSamples, j, j+1)
                     if nota != 'not recognize' :
                         duration = onset_times[j + 1] - onset_times[j]
@@ -233,6 +240,9 @@ def processAudio(s, drawer, q, audioPath, scorePath,lastNote, lastDuration,detec
                         duration = onset_times[j + 1] - onset_times[j]
                         figure = getFigure(duration)    
                         drawer.drawChord(chord,figure)
+                        m21Chord = c21.Chord(getNotesFromChords(getBaseNote(chord),4))
+                        m21Chord.duration = d21.Duration(getFigureDuration(getFigure(duration)))
+                        s.append(m21Chord)
                 elif j == length-1:
                     _ , chord =  detectAndPrintChord(s, q, y, sr, filteredSamples, j, 999, scorePath)
                     duration = onset_times[len(onset_times)-1] - onset_times[j]
@@ -250,6 +260,10 @@ def processAudio(s, drawer, q, audioPath, scorePath,lastNote, lastDuration,detec
             elif detected == 'chord':
                 print("leftover chord: {}".format(lastNote))
                 drawer.drawChord(lastNote,getFigure(lastDuration+0.5))
+                triada = getNotesFromChords(getBaseNote(lastNote),4)
+                m21Chord = c21.Chord(triada)
+                m21Chord.duration = d21.Duration(getFigureDuration(getFigure(lastDuration+0.5)))
+                s.append(m21Chord)
         else:
             drawer.drawNote("blank", "white")
         lastDuration = 0
@@ -299,6 +313,8 @@ def normalizeChordShape(chroma_mat):
     return chroma_mat
 
 def isSound(signal,sr):
+    if len(signal) == 0:
+        return False
     X = fft(signal)
     X_mag = np.absolute(X)
 
@@ -316,6 +332,36 @@ def isSound(signal,sr):
         return len(peak_i) > 0
         # if we found an for a peak we print the note
     return False
+
+def getOctaveFromFundamental(signal, sample_rate):
+    octava = 4
+    X = fft(signal)
+    X_mag = np.absolute(X)
+
+    # generate x values (frequencies)
+    f = np.linspace(0, sample_rate, len(X_mag))
+    f_bins = int(len(X_mag)*0.1) 
+    
+
+    # find peaks in Y values. Use height value to filter lower peaks
+    _, properties = find_peaks(X_mag, height=100)
+    if len(properties['peak_heights']) > 0:
+        peak_sel = np.where(X_mag[:f_bins] == properties['peak_heights'][0])
+        frec = f[peak_sel[0]]
+    else:
+        frec = 1001
+
+    if frec < 130 :
+        octava = 2
+    elif frec >= 130 and frec < 250 :
+        octava = 3
+    elif frec >= 250 and frec < 530 :
+        octava = 4
+    elif frec >=523 and frec < 1000 :
+        octava = 5
+    print (frec)
+    return octava
+
 
 def getChroma(signal,sample_rate):
     # extract Chroma
@@ -335,6 +381,13 @@ def getChordAndIntrumentFromRNN(signal, sample_rate):
     if index < 24:
         instrument = INSTRUMENT[0]
     return instrument, chord
+
+def getBaseNote(note):
+    if len(note) == 2:
+        return note[0]
+    if len(note) == 3:
+        return note[:1]
+    return ""
 
 def getNotesFromChords(chord,octava):
     notas_string = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]
@@ -377,6 +430,8 @@ def detectAndPrintChord(s, q, y, sr, samples, a, b, scorePath):
         return playedIntrument, playedChord
     octava = 4
     playedIntrument, playedChord = getChordAndIntrumentFromRNN(data,sr)
+    if playedIntrument == INSTRUMENT[1] :
+        octava = getOctaveFromFundamental(data,sr)
 
     triada = getNotesFromChords(playedChord,octava)
     q.put(NOTE_TRANSLATION_MAP[triada[0]])

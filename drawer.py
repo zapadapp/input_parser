@@ -29,6 +29,8 @@ class Drawer:
         x, y = self.t.position()
         self.initScoreX = x - (width/2 - 10)
         self.initScoreY = y + (height/2 - 50)
+        self.originalX = self.initScoreX
+        self.originalY = self.initScoreY
 
         self.drawScore()
     
@@ -393,6 +395,18 @@ class Drawer:
     
     def getNoteYPos(self, note):
         match note:
+            case "C3" | "C#3":
+                return self.scoreY - 100
+            case "D3" | "D#3": 
+                return self.scoreY - 90    
+            case "E3" | "E#3":
+                return self.scoreY - 80
+            case "F3" | "F#3":
+                return self.scoreY - 70
+            case "G3" | "G#3":
+                return self.scoreY - 60
+            case "A3" | "A#3":
+                return self.scoreY - 50 
             case "B3" | "B#3" :
                 return self.scoreY - 40
             case "C4" | "C#4":
@@ -482,6 +496,7 @@ class Drawer:
 
     def clearScore(self):
         self.t.clear()
+        self.t2.clear()
         self.drawnNotes = []
         self.drawnElements = []
         self.scoreX = 0
@@ -490,6 +505,8 @@ class Drawer:
         self.compassWeight = 0
         self.maxCompasses = 4
         self.compassSplits = 0
+        self.initScoreX = self.originalX
+        self.initScoreY = self.originalY
         self.drawScore()        
 
     def waiting(self):

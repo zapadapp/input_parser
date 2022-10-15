@@ -6,6 +6,8 @@ from threading import Thread
 from music21 import stream as m21stream
 import time
 import music21
+from queue import Queue
+
 # solve local imports
 import os, sys
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -38,13 +40,28 @@ class Recorder:
             return  
         self.recording = True
         self.noteStream = m21stream.Stream()
-        
-        self.stream = self.audio.open(format=self.FORMAT, channels=self.CHANNELS,
-                        rate=self.RATE, input=True,
-                        frames_per_buffer=self.CHUNK, input_device_index=self.deviceChoice)
+        self.dataQ = Queue() 
 
         noteCO = ""
         timeCO = 0
+
+        self.recDataThread = Thread(target = self.recData, args =()).start()
+
+        while self.recording == True or self.dataQ.qsize != 0:
+            frames = self.dataQ.get()
+            waveFile = wave.open(self.WAVE_OUTPUT_FILENAME, 'wb')
+            waveFile.setnchannels(self.CHANNELS)
+            waveFile.setsampwidth(self.audio.get_sample_size(self.FORMAT))
+            waveFile.setframerate(self.RATE)
+            waveFile.writeframes(b''.join(frames))
+            waveFile.close()
+
+            noteCO, timeCO = processAudio.processAudio(self.noteStream,drawer,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH, noteCO, timeCO,detect)
+          
+    def recData(self):
+        self.stream = self.audio.open(format=self.FORMAT, channels=self.CHANNELS,
+                        rate=self.RATE, input=True,
+                        frames_per_buffer=self.CHUNK, input_device_index=self.deviceChoice)
 
         while self.recording == True:
             frames = []
@@ -54,29 +71,12 @@ class Recorder:
                 frames.append(data)  
             print("finished recording")
 
-            waveFile = wave.open(self.WAVE_OUTPUT_FILENAME, 'wb')
-            waveFile.setnchannels(self.CHANNELS)
-            waveFile.setsampwidth(self.audio.get_sample_size(self.FORMAT))
-            waveFile.setframerate(self.RATE)
-            waveFile.writeframes(b''.join(frames))
-            waveFile.close()
-
-                #self.processThread = Thread(target = audio2note.processAudio, args =(self.noteStream,drawer,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
-                #self.processThread.start()
-            noteCO, timeCO = processAudio.processAudio(self.noteStream,drawer,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH, noteCO, timeCO,detect)
-            print("process audio returns === note: {}, time: {}".format(noteCO, timeCO))
-            #else:
-                # self.processThread = Thread(target = audio2chord.processAudio, args =(self.noteStream, note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
-                # self.processThread.start()
-                # noteCO, timeCO = audio2chord.processAudio(self.noteStream, note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH)
-
-        ##CUANDO SE STOPEA, ESPERO QUE TERMINEN LOS THREADS DE TRABAJAR
-        #self.processThread.join()
+            self.dataQ.put(frames)
 
     def stop(self):
         self.recording = False
         ## Small sleep to let recorder finish creating the file if necessary before cloging the stream
-        time.sleep(0.5)
+        time.sleep(self.RECORD_SECONDS)
         self.stream.stop_stream()
 
     def reproduce(self):
