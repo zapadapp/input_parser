@@ -46,8 +46,10 @@ class Recorder:
         timeCO = 0
 
         self.recDataThread = Thread(target = self.recData, args =()).start()
-
-        while self.recording == True or self.dataQ.qsize != 0:
+        isFlute =  False
+        if self.deviceChoice == 3 :
+            isFlute = True
+        while self.keepProcessing():
             frames = self.dataQ.get()
             waveFile = wave.open(self.WAVE_OUTPUT_FILENAME, 'wb')
             waveFile.setnchannels(self.CHANNELS)
@@ -56,8 +58,17 @@ class Recorder:
             waveFile.writeframes(b''.join(frames))
             waveFile.close()
 
-            noteCO, timeCO = processAudio.processAudio(self.noteStream,drawer,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH, noteCO, timeCO,detect)
-          
+            noteCO, timeCO = processAudio.processAudio(self.noteStream,drawer,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH, noteCO, timeCO,detect,isFlute)
+            print("LastNote: {} and LastDuration: {}\n".format(noteCO,timeCO))
+    def keepProcessing(self):
+        if self.recording == True:
+            return True
+
+        if self.recording == False and self.dataQ.qsize != 0:
+            return True
+
+        return False    
+
     def recData(self):
         self.stream = self.audio.open(format=self.FORMAT, channels=self.CHANNELS,
                         rate=self.RATE, input=True,

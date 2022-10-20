@@ -18,7 +18,7 @@ WORKSPACE = os.path.dirname(FILE_PATH)
 
 sys.path.insert(0, os.path.join(WORKSPACE, "note"))
 
-MY_MODEL = keras.models.load_model('../notes/modelo-notas-v03.h5')
+MY_MODEL = keras.models.load_model('../notes/modelo-notas-vfin.h5')
 
 CATEGORIES = ["A#2","A#3","A#4","A2","A3","A4","B2","B3","B4","C#3","C#4","C#5",
  			   "C3","C4","C5","D#3","D#4","D#5","D3","D4","D5","E2","E3","E4",
@@ -220,15 +220,15 @@ def processAudio(s, drawer, q, audioPath, scorePath, noteCO, timeCO):
         duration = librosa.get_duration(y=y, sr= sr)
         print("duration {}".format(duration))
         
-        ONSET_PARAM = 20
+        ONSET_PARAM = 1
         tempo, beats = librosa.beat.beat_track(y=y, sr=sr)
         velocity_audio = 60*len(beats)/2
         if velocity_audio > 40 and velocity_audio <= 80 :
-            ONSET_PARAM = 10
+            ONSET_PARAM = 1
         elif velocity_audio > 80 and velocity_audio <= 100:
-            ONSET_PARAM = 7
+            ONSET_PARAM = 1
         elif velocity_audio > 100:
-            ONSET_PARAM = 5
+            ONSET_PARAM = 1
 
         onset_env = librosa.onset.onset_strength(y=y, sr=sr, max_size=5)
         onset_frames = librosa.onset.onset_detect(onset_envelope=onset_env,backtrack=True, normalize =True,wait=ONSET_PARAM, pre_avg=ONSET_PARAM, post_avg=ONSET_PARAM, pre_max=ONSET_PARAM, post_max=ONSET_PARAM)
