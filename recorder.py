@@ -80,12 +80,18 @@ class Recorder:
         self.stream.stop_stream()
 
     def reproduce(self):
-        fp = self.noteStream.write('midi', fp=os.path.join('files',self.scoreFile+'.mid'))
+        score = self.saveMidi("tmpscore")
+        score.show('midi') 
+
+    def saveMidi(self, fileName):
+        fp = self.noteStream.write('midi', fp=os.path.join('files',fileName+'.mid'))
         fctr = 2 
         score = music21.converter.Converter()
         score.parseFile(fp)
         newscore = score.stream.augmentOrDiminish(fctr)
-        newscore.show('midi') 
+        newscore.write('midi', fp=os.path.join('files',fileName+'.mid'))
+        return newscore
+
        
     def saveScore(self, path):
         self.noteStream.write('lily.png', fp=path)
