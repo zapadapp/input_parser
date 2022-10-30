@@ -161,7 +161,7 @@ def convertToNote(val) :
 
     return nota
 
-def processAudio(s, drawer, q, audioPath, scorePath,lastNote, lastDuration,detected):
+def processAudio(s, drawer, q, audioPath, scorePath,lastNote, lastDuration,detected,noteDetected):
     y, sr = librosa.load(audioPath)
     duration = 0.0
     instrumento  = ""
@@ -222,6 +222,7 @@ def processAudio(s, drawer, q, audioPath, scorePath,lastNote, lastDuration,detec
                     # figure = getFigure(duration)
                     # drawer.drawNote(nota,figure)
             lastDuration = 2 - onset_times[len(onset_times)-1]
+            noteDetected = True
         elif detected == 'chord':
             for i in indexes[0]:
                 j = i
@@ -239,21 +240,23 @@ def processAudio(s, drawer, q, audioPath, scorePath,lastNote, lastDuration,detec
                     drawer.drawChord(chord,duration)
             lastDuration = 2 - onset_times[len(onset_times)-1]
             nota = chord
+            noteDetected = True
     else:
-        if lastNote != "":
-            if detected == 'note':
-                drawer.drawNote(lastNote,getFigure(lastDuration+0.5))
-                m21Note = note.Note(lastNote)
-                m21Note.duration = d21.Duration(getFigureDuration(getFigure(lastDuration+0.5)))
-                s.append(m21Note)
-            elif detected == 'chord':
-                print("leftover chord: {}".format(lastNote))
-                drawer.drawChord(lastNote,getFigure(lastDuration+0.5))
-        else:
-            drawer.drawNote("blank", "white")
-        lastDuration = 0
+        if noteDetected == True:
+            if lastNote != "":
+                if detected == 'note':
+                    drawer.drawNote(lastNote,getFigure(lastDuration+0.5))
+                    m21Note = note.Note(lastNote)
+                    m21Note.duration = d21.Duration(getFigureDuration(getFigure(lastDuration+0.5)))
+                    s.append(m21Note)
+                elif detected == 'chord':
+                    print("leftover chord: {}".format(lastNote))
+                    drawer.drawChord(lastNote,getFigure(lastDuration+0.5))
+            else:
+                drawer.drawNote("blank", "white")
+            lastDuration = 0
         
-    return nota, lastDuration
+    return nota, lastDuration, noteDetected
 
 #RESHAPES NOTES AND CHORDS
 def correctNoteShape(mel_shape):
