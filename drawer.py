@@ -6,7 +6,7 @@ from threading import Thread
 
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, FILE_PATH)
-import audio2chord
+import processAudio
 
 class Drawer:
     def __init__(self, t, t2, width, height):
@@ -29,6 +29,8 @@ class Drawer:
         x, y = self.t.position()
         self.initScoreX = x - (width/2 - 10)
         self.initScoreY = y + (height/2 - 50)
+        self.originalX = self.initScoreX
+        self.originalY = self.initScoreY
 
         self.drawScore()
     
@@ -72,6 +74,15 @@ class Drawer:
         self.t2.goto(self.scoreX, self.scoreY)
         self.t2.setheading(0)
         self.t2.down()  
+
+    def splitScore(self):
+        self.compassSplits = 0
+        self.drawnElements = []
+        self.gotoBase()
+        x, y = self.t.position()
+        self.initScoreX = x - 25 # remove indentation
+        self.initScoreY = y - 80
+        self.drawScore()
 
     def splitScore(self):
         self.compassSplits = 0
@@ -184,7 +195,7 @@ class Drawer:
 
     def drawChord(self, chord, type):
         octave = chord[len(chord)-1]
-        notes = audio2chord.getNotesFromChords(chord[:len(chord)-1], int(octave))
+        notes = processAudio.getNotesFromChords(processAudio.getBaseNote(chord), int(octave))
         if len(notes) != 3:
             return 
         
@@ -393,6 +404,18 @@ class Drawer:
     
     def getNoteYPos(self, note):
         match note:
+            case "C3" | "C#3":
+                return self.scoreY - 100
+            case "D3" | "D#3": 
+                return self.scoreY - 90    
+            case "E3" | "E#3":
+                return self.scoreY - 80
+            case "F3" | "F#3":
+                return self.scoreY - 70
+            case "G3" | "G#3":
+                return self.scoreY - 60
+            case "A3" | "A#3":
+                return self.scoreY - 50 
             case "B3" | "B#3" :
                 return self.scoreY - 40
             case "C4" | "C#4":
@@ -435,6 +458,13 @@ class Drawer:
             self.gotoBase()
             self.drawnElements.append("split")
             self.compassSplits = self.compassSplits + 1
+
+            leftover = self.compassWeight%4
+            self.compassWeight = leftover
+
+            if self.compassSplits == self.maxCompasses:
+                self.splitScore()
+
 
             leftover = self.compassWeight%4
             self.compassWeight = leftover

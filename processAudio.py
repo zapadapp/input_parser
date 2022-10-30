@@ -21,7 +21,6 @@ N_MELS = 50
 sys.path.insert(0, os.path.join(WORKSPACE, "note"))
 sys.path.insert(0, os.path.join(WORKSPACE, "chord_cnn"))
 
-
 #Categories from version 04
 CHORD_CATEGORIES = ["A","A#","A#-","A-","B","B-","C","C#", 
               "C#-","C-","D","D#","D#-","D-","E","E-",
