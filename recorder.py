@@ -82,16 +82,20 @@ class Recorder:
         self.stream.stop_stream()
 
     def reproduce(self):
-        score = self.saveMidi("tmpscore")
+        score = self.saveMidi(".tmpscore")
         score.show('midi') 
 
     def saveMidi(self, fileName):
-        fp = self.noteStream.write('midi', fp=os.path.join('files',fileName+'.mid'))
+        try:
+            os.mkdir(os.path.join("files",fileName))
+        except:
+            print("could not create path")  
+        fp = self.noteStream.write('midi', fp=os.path.join('files',fileName,fileName+'.mid'))
         fctr = 2 
         score = music21.converter.Converter()
         score.parseFile(fp)
         newscore = score.stream.augmentOrDiminish(fctr)
-        newscore.write('midi', fp=os.path.join('files',fileName+'.mid'))
+        newscore.write('midi', fp=os.path.join('files',fileName, fileName+'.mid'))
         return newscore
 
        
