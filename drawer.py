@@ -23,7 +23,7 @@ class Drawer:
         self.scoreY = 0
         self.lowestY = 0
         self.compassWeight = 0
-        self.maxCompasses = 4
+        self.maxCompasses = 5
         self.compassSplits = 0
             
         x, y = self.t.position()
@@ -74,15 +74,6 @@ class Drawer:
         self.t2.goto(self.scoreX, self.scoreY)
         self.t2.setheading(0)
         self.t2.down()  
-
-    def splitScore(self):
-        self.compassSplits = 0
-        self.drawnElements = []
-        self.gotoBase()
-        x, y = self.t.position()
-        self.initScoreX = x - 25 # remove indentation
-        self.initScoreY = y - 80
-        self.drawScore()
 
     def splitScore(self):
         self.compassSplits = 0
@@ -458,27 +449,12 @@ class Drawer:
             self.gotoBase()
             self.drawnElements.append("split")
             self.compassSplits = self.compassSplits + 1
-
+            print("compassSplits: ",self.compassSplits)
             leftover = self.compassWeight%4
             self.compassWeight = leftover
 
             if self.compassSplits == self.maxCompasses:
                 self.splitScore()
-
-
-            leftover = self.compassWeight%4
-            self.compassWeight = leftover
-
-            if self.compassSplits == self.maxCompasses:
-                self.splitScore()
-
-
-            leftover = self.compassWeight%4
-            self.compassWeight = leftover
-
-            if self.compassSplits == self.maxCompasses:
-                self.splitScore()
-
 
     def drawExtraLines(self, x, y):
         if y < self.scoreY - 10 :
@@ -518,7 +494,7 @@ class Drawer:
         self.scoreY = 0
         self.lowestY = 0
         self.compassWeight = 0
-        self.maxCompasses = 4
+        self.maxCompasses = 5
         self.compassSplits = 0
         self.drawScore()        
 
