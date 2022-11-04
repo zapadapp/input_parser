@@ -20,17 +20,19 @@ class Recorder:
         self.vad.set_mode(2)
         self.FORMAT = pyaudio.paInt16
         self.CHANNELS = 1
-        self.RATE = 22050
-        self.CHUNK = 1024
+        self.RATE = 44100
+        self.CHUNK = 512
         self.RECORD_SECONDS = 2
         self.WAVE_OUTPUT_FILENAME = outputFile
         self.SCORE_PATH = scoreFile
         self.recording = False
         self.scoreFile = scoreFile
 
-    def setup(self, deviceChoice):
+    def setup(self, deviceChoice, channelChoice):
         self.audio = pyaudio.PyAudio()
         self.deviceChoice = deviceChoice
+        self.CHANNELS = channelChoice
+        print("SETUP dev: {}\n chann: {}".format(self.deviceChoice, self.CHANNELS))
 
     def record(self, note_q, detect, drawer):  
         if self.recording == True :
@@ -39,7 +41,9 @@ class Recorder:
         self.recording = True
         self.noteStream = m21stream.Stream()
         
-        self.stream = self.audio.open(format=self.FORMAT, channels=self.CHANNELS,
+        print("RECORD dev: {}\n chann: {}".format(self.deviceChoice, self.CHANNELS))
+
+        self.stream = self.audio.open(format=self.FORMAT, channels=2,
                         rate=self.RATE, input=True,
                         frames_per_buffer=self.CHUNK, input_device_index=self.deviceChoice)
 
