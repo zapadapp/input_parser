@@ -28,10 +28,10 @@ class Recorder:
         self.recording = False
         self.scoreFile = scoreFile
 
-    def setup(self, deviceChoice, channelChoice):
+    def setup(self, deviceChoice):
         self.audio = pyaudio.PyAudio()
         self.deviceChoice = deviceChoice
-        self.CHANNELS = channelChoice
+        #self.CHANNELS = channelChoice
         print("SETUP dev: {}\n chann: {}".format(self.deviceChoice, self.CHANNELS))
 
     def record(self, note_q, detect, drawer):  
@@ -43,7 +43,7 @@ class Recorder:
         
         print("RECORD dev: {}\n chann: {}".format(self.deviceChoice, self.CHANNELS))
 
-        self.stream = self.audio.open(format=self.FORMAT, channels=2,
+        self.stream = self.audio.open(format=self.FORMAT, channels=1,
                         rate=self.RATE, input=True,
                         frames_per_buffer=self.CHUNK, input_device_index=self.deviceChoice)
 
@@ -82,7 +82,7 @@ class Recorder:
     def stop(self):
         self.recording = False
         ## Small sleep to let recorder finish creating the file if necessary before cloging the stream
-        time.sleep(0.5)
+        time.sleep(3)
         self.stream.stop_stream()
 
     def reproduce(self):
