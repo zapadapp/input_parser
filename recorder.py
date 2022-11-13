@@ -34,7 +34,7 @@ class Recorder:
         #self.CHANNELS = channelChoice
         print("SETUP dev: {}\n chann: {}".format(self.deviceChoice, self.CHANNELS))
 
-    def record(self, note_q, detect, drawer):  
+    def record(self, note_q, detect, drawer, fluteSwitch):  
         if self.recording == True :
             print("Already recording")
             return  
@@ -68,7 +68,7 @@ class Recorder:
 
                 #self.processThread = Thread(target = audio2note.processAudio, args =(self.noteStream,drawer,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
                 #self.processThread.start()
-            noteCO, timeCO, noteDetected = processAudio.processAudio(self.noteStream,drawer,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH, noteCO, timeCO,detect,noteDetected)
+            noteCO, timeCO, noteDetected = processAudio.processAudio(self.noteStream,drawer,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH, noteCO, timeCO,detect,noteDetected, fluteSwitch)
 
             print("process audio returns === note: {}, time: {}".format(noteCO, timeCO))
             #else:
