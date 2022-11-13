@@ -82,7 +82,7 @@ class Recorder:
     def stop(self):
         self.recording = False
         ## Small sleep to let recorder finish creating the file if necessary before cloging the stream
-        time.sleep(3)
+        time.sleep(2)
         self.stream.stop_stream()
 
     def reproduce(self):

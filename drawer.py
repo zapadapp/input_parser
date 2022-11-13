@@ -488,6 +488,7 @@ class Drawer:
 
     def clearScore(self):
         self.t.clear()
+        self.t2.clear()
         self.drawnNotes = []
         self.drawnElements = []
         self.scoreX = 0
@@ -496,6 +497,8 @@ class Drawer:
         self.compassWeight = 0
         self.maxCompasses = 5
         self.compassSplits = 0
+        self.initScoreX = self.originalX
+        self.initScoreY = self.originalY
         self.drawScore()        
 
     def waiting(self):
