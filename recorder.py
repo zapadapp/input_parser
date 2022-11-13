@@ -20,8 +20,8 @@ class Recorder:
         self.vad.set_mode(2)
         self.FORMAT = pyaudio.paInt16
         self.CHANNELS = 1
-        self.RATE = 22050
-        self.CHUNK = 1024
+        self.RATE = 44100
+        self.CHUNK = 512
         self.RECORD_SECONDS = 2
         self.WAVE_OUTPUT_FILENAME = outputFile
         self.SCORE_PATH = scoreFile
@@ -31,20 +31,25 @@ class Recorder:
     def setup(self, deviceChoice):
         self.audio = pyaudio.PyAudio()
         self.deviceChoice = deviceChoice
+        #self.CHANNELS = channelChoice
+        print("SETUP dev: {}\n chann: {}".format(self.deviceChoice, self.CHANNELS))
 
-    def record(self, note_q, detect, drawer):  
+    def record(self, note_q, detect, drawer, fluteSwitch):  
         if self.recording == True :
             print("Already recording")
             return  
         self.recording = True
         self.noteStream = m21stream.Stream()
         
-        self.stream = self.audio.open(format=self.FORMAT, channels=self.CHANNELS,
+        print("RECORD dev: {}\n chann: {}".format(self.deviceChoice, self.CHANNELS))
+
+        self.stream = self.audio.open(format=self.FORMAT, channels=1,
                         rate=self.RATE, input=True,
                         frames_per_buffer=self.CHUNK, input_device_index=self.deviceChoice)
 
         noteCO = ""
         timeCO = 0
+        noteDetected = False
 
         while self.recording == True:
             frames = []
@@ -63,7 +68,8 @@ class Recorder:
 
                 #self.processThread = Thread(target = audio2note.processAudio, args =(self.noteStream,drawer,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
                 #self.processThread.start()
-            noteCO, timeCO = processAudio.processAudio(self.noteStream,drawer,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH, noteCO, timeCO,detect)
+            noteCO, timeCO, noteDetected = processAudio.processAudio(self.noteStream,drawer,note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH, noteCO, timeCO,detect,noteDetected, fluteSwitch)
+
             print("process audio returns === note: {}, time: {}".format(noteCO, timeCO))
             #else:
                 # self.processThread = Thread(target = audio2chord.processAudio, args =(self.noteStream, note_q,self.WAVE_OUTPUT_FILENAME, self.SCORE_PATH))
@@ -76,16 +82,26 @@ class Recorder:
     def stop(self):
         self.recording = False
         ## Small sleep to let recorder finish creating the file if necessary before cloging the stream
-        time.sleep(0.5)
+        time.sleep(2)
         self.stream.stop_stream()
 
     def reproduce(self):
-        fp = self.noteStream.write('midi', fp=os.path.join('files',self.scoreFile+'.mid'))
+        score = self.saveMidi(".tmpscore")
+        score.show('midi') 
+
+    def saveMidi(self, fileName):
+        try:
+            os.mkdir(os.path.join("files",fileName))
+        except:
+            print("could not create path")  
+        fp = self.noteStream.write('midi', fp=os.path.join('files',fileName,fileName+'.mid'))
         fctr = 2 
         score = music21.converter.Converter()
         score.parseFile(fp)
         newscore = score.stream.augmentOrDiminish(fctr)
-        newscore.show('midi') 
+        newscore.write('midi', fp=os.path.join('files',fileName, fileName+'.mid'))
+        return newscore
+
        
     def saveScore(self, path):
         self.noteStream.write('lily.png', fp=path)
